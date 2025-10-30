@@ -24,6 +24,7 @@ import type * as myFunctions from "../myFunctions.js";
 import type * as myFunctions2 from "../myFunctions2.js";
 import type * as myFunctions3 from "../myFunctions3.js";
 import type * as myFunctions4 from "../myFunctions4.js";
+import type * as myFunctions5 from "../myFunctions5.js";
 
 import type {
   ApiFromModules,
@@ -56,6 +57,7 @@ declare const fullApi: ApiFromModules<{
   myFunctions2: typeof myFunctions2;
   myFunctions3: typeof myFunctions3;
   myFunctions4: typeof myFunctions4;
+  myFunctions5: typeof myFunctions5;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 

@@ -16,13 +16,13 @@ export default function App() {
 }
 
 function Content() {
-  const { viewer, numbers } =
+  const { numbers } =
     useQuery(api.myFunctions.listNumbersSimple, {
       count: 10,
     }) ?? {};
   const addNumber = useMutation(api.myFunctions.addNumber);
 
-  if (viewer === undefined || numbers === undefined) {
+  if (numbers === undefined) {
     return (
       <div className="mx-auto">
         <p>loading... (consider a loading skeleton)</p>
@@ -32,7 +32,7 @@ function Content() {
 
   return (
     <div className="flex flex-col gap-8 max-w-lg mx-auto">
-      <p>Welcome {viewer ?? "Anonymous"}!</p>
+      <p>Welcome {"Anonymous"}!</p>
       <p>
         Click the button below and open this page in another window - this data
         is persisted in the Convex cloud database!

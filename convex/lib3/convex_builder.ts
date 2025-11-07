@@ -6,15 +6,20 @@ import {
   internalMutation,
   internalAction,
 } from "../_generated/server";
-import type { RegisteredQuery, RegisteredMutation, RegisteredAction } from "convex/server";
-import type { IntersectPick } from "@orpc/shared";
-import type { ConvexMiddleware, AnyConvexMiddleware } from "./convex_middleware";
+import type {
+  RegisteredQuery,
+  RegisteredMutation,
+  RegisteredAction,
+} from "convex/server";
+import type {
+  ConvexMiddleware,
+  AnyConvexMiddleware,
+} from "./convex_middleware";
 import type {
   Context,
   ConvexArgsValidator,
   ConvexReturnsValidator,
   InferArgs,
-  InferReturns,
   FunctionType,
   Visibility,
   QueryCtx,
@@ -24,8 +29,6 @@ import type {
 
 interface ConvexBuilderDef<
   TFunctionType extends FunctionType | undefined,
-  TInitialContext extends Context,
-  TCurrentContext extends Context,
   TArgsValidator extends ConvexArgsValidator | undefined,
   TReturnsValidator extends ConvexReturnsValidator | undefined,
   TVisibility extends Visibility,
@@ -47,8 +50,6 @@ export class ConvexBuilder<
 > {
   private def: ConvexBuilderDef<
     TFunctionType,
-    TInitialContext,
-    TCurrentContext,
     TArgsValidator,
     TReturnsValidator,
     TVisibility
@@ -57,12 +58,10 @@ export class ConvexBuilder<
   constructor(
     def: ConvexBuilderDef<
       TFunctionType,
-      TInitialContext,
-      TCurrentContext,
       TArgsValidator,
       TReturnsValidator,
       TVisibility
-    >
+    >,
   ) {
     this.def = def;
   }
@@ -88,7 +87,7 @@ export class ConvexBuilder<
    * Creates a middleware function.
    */
   middleware<UOutContext extends Context>(
-    middleware: ConvexMiddleware<TInitialContext, UOutContext>
+    middleware: ConvexMiddleware<TInitialContext, UOutContext>,
   ): ConvexMiddleware<TInitialContext, UOutContext> {
     return middleware;
   }
@@ -97,7 +96,7 @@ export class ConvexBuilder<
    * Applies middleware to the pipeline.
    */
   use<UOutContext extends Context>(
-    middleware: ConvexMiddleware<TCurrentContext, UOutContext>
+    middleware: ConvexMiddleware<TCurrentContext, UOutContext>,
   ): ConvexBuilder<
     TFunctionType,
     TInitialContext,
@@ -134,8 +133,12 @@ export class ConvexBuilder<
    */
   mutation(): ConvexBuilder<
     "mutation",
-    TInitialContext extends Record<never, never> ? MutationCtx : TInitialContext,
-    TCurrentContext extends Record<never, never> ? MutationCtx : TCurrentContext,
+    TInitialContext extends Record<never, never>
+      ? MutationCtx
+      : TInitialContext,
+    TCurrentContext extends Record<never, never>
+      ? MutationCtx
+      : TCurrentContext,
     TArgsValidator,
     TReturnsValidator,
     TVisibility
@@ -183,8 +186,8 @@ export class ConvexBuilder<
   /**
    * Sets the input validation schema (Convex args validators).
    */
-  args<UArgsValidator extends ConvexArgsValidator>(
-    validator: UArgsValidator
+  input<UArgsValidator extends ConvexArgsValidator>(
+    validator: UArgsValidator,
   ): ConvexBuilder<
     TFunctionType,
     TInitialContext,
@@ -203,7 +206,7 @@ export class ConvexBuilder<
    * Sets the output validation schema (Convex returns validator).
    */
   returns<UReturnsValidator extends ConvexReturnsValidator>(
-    validator: UReturnsValidator
+    validator: UReturnsValidator,
   ): ConvexBuilder<
     TFunctionType,
     TInitialContext,
@@ -222,12 +225,12 @@ export class ConvexBuilder<
    * Defines the handler and creates the registered Convex function.
    */
   handler<TReturn>(
-    handlerFn: (
-      ctx: TCurrentContext,
-      args: TArgsValidator extends ConvexArgsValidator
+    handlerFn: (options: {
+      context: TCurrentContext;
+      input: TArgsValidator extends ConvexArgsValidator
         ? InferArgs<TArgsValidator>
-        : Record<never, never>
-    ) => Promise<TReturn>
+        : Record<never, never>;
+    }) => Promise<TReturn>,
   ): TFunctionType extends "query"
     ? TVisibility extends "public"
       ? RegisteredQuery<
@@ -245,48 +248,58 @@ export class ConvexBuilder<
           Promise<TReturn>
         >
     : TFunctionType extends "mutation"
-    ? TVisibility extends "public"
-      ? RegisteredMutation<
-          "public",
-          TArgsValidator extends ConvexArgsValidator
-            ? InferArgs<TArgsValidator>
-            : Record<never, never>,
-          Promise<TReturn>
-        >
-      : RegisteredMutation<
-          "internal",
-          TArgsValidator extends ConvexArgsValidator
-            ? InferArgs<TArgsValidator>
-            : Record<never, never>,
-          Promise<TReturn>
-        >
-    : TFunctionType extends "action"
-    ? TVisibility extends "public"
-      ? RegisteredAction<
-          "public",
-          TArgsValidator extends ConvexArgsValidator
-            ? InferArgs<TArgsValidator>
-            : Record<never, never>,
-          Promise<TReturn>
-        >
-      : RegisteredAction<
-          "internal",
-          TArgsValidator extends ConvexArgsValidator
-            ? InferArgs<TArgsValidator>
-            : Record<never, never>,
-          Promise<TReturn>
-        >
-    : never {
-    const { functionType, middlewares, argsValidator, returnsValidator, visibility } = this.def;
+      ? TVisibility extends "public"
+        ? RegisteredMutation<
+            "public",
+            TArgsValidator extends ConvexArgsValidator
+              ? InferArgs<TArgsValidator>
+              : Record<never, never>,
+            Promise<TReturn>
+          >
+        : RegisteredMutation<
+            "internal",
+            TArgsValidator extends ConvexArgsValidator
+              ? InferArgs<TArgsValidator>
+              : Record<never, never>,
+            Promise<TReturn>
+          >
+      : TFunctionType extends "action"
+        ? TVisibility extends "public"
+          ? RegisteredAction<
+              "public",
+              TArgsValidator extends ConvexArgsValidator
+                ? InferArgs<TArgsValidator>
+                : Record<never, never>,
+              Promise<TReturn>
+            >
+          : RegisteredAction<
+              "internal",
+              TArgsValidator extends ConvexArgsValidator
+                ? InferArgs<TArgsValidator>
+                : Record<never, never>,
+              Promise<TReturn>
+            >
+        : never {
+    const {
+      functionType,
+      middlewares,
+      argsValidator,
+      returnsValidator,
+      visibility,
+    } = this.def;
 
     if (!functionType) {
-      throw new Error("Function type not set. Call .query(), .mutation(), or .action() first.");
+      throw new Error(
+        "Function type not set. Call .query(), .mutation(), or .action() first.",
+      );
     }
 
     // Compose middleware with handler
     const composedHandler = async (
       baseCtx: QueryCtx | MutationCtx | ActionCtx,
-      baseArgs: TArgsValidator extends ConvexArgsValidator ? InferArgs<TArgsValidator> : Record<never, never>
+      baseArgs: TArgsValidator extends ConvexArgsValidator
+        ? InferArgs<TArgsValidator>
+        : Record<never, never>,
     ) => {
       let currentContext: any = baseCtx;
 
@@ -299,7 +312,10 @@ export class ConvexBuilder<
         currentContext = result.context;
       }
 
-      return handlerFn(currentContext as TCurrentContext, baseArgs);
+      return handlerFn({
+        context: currentContext as TCurrentContext,
+        input: baseArgs,
+      });
     };
 
     // Build Convex config
@@ -311,15 +327,21 @@ export class ConvexBuilder<
 
     // Register with appropriate Convex function
     if (functionType === "query") {
-      return (visibility === "public" ? query(config) : internalQuery(config)) as any;
+      return (
+        visibility === "public" ? query(config) : internalQuery(config)
+      ) as any;
     }
 
     if (functionType === "mutation") {
-      return (visibility === "public" ? mutation(config) : internalMutation(config)) as any;
+      return (
+        visibility === "public" ? mutation(config) : internalMutation(config)
+      ) as any;
     }
 
     if (functionType === "action") {
-      return (visibility === "public" ? action(config) : internalAction(config)) as any;
+      return (
+        visibility === "public" ? action(config) : internalAction(config)
+      ) as any;
     }
 
     throw new Error(`Unknown function type: ${functionType}`);
@@ -337,4 +359,3 @@ export const cvx = new ConvexBuilder<
   middlewares: [],
   visibility: "public",
 });
-

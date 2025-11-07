@@ -4,15 +4,14 @@ import { cvx } from "./lib3/convex_builder";
 // Example: Simple query without middleware
 export const listNumbersSimple = cvx
   .query()
-  .args({ count: v.number() })
-  .handler(async (ctx, args) => {
-    const numbers = await ctx.db
+  .input({ count: v.number() })
+  .handler(async ({ context, input }) => {
+    const numbers = await context.db
       .query("numbers")
       .order("desc")
-      .take(args.count);
+      .take(input.count);
 
     return {
-      viewer: (await ctx.auth.getUserIdentity())?.name ?? null,
       numbers: numbers.reverse().map((number) => number.value),
     };
   });
@@ -39,15 +38,15 @@ const authMiddleware = cvx.query().middleware(async ({ context, next }) => {
 export const listNumbersAuth = cvx
   .query()
   .use(authMiddleware)
-  .args({ count: v.number() })
-  .handler(async (ctx, args) => {
-    const numbers = await ctx.db
+  .input({ count: v.number() })
+  .handler(async ({ context, input }) => {
+    const numbers = await context.db
       .query("numbers")
       .order("desc")
-      .take(args.count);
+      .take(input.count);
 
     return {
-      viewer: ctx.user.name, // user is available from middleware!
+      viewer: context.user.name, // user is available from middleware!
       numbers: numbers.reverse().map((number) => number.value),
     };
   });
@@ -56,11 +55,11 @@ export const listNumbersAuth = cvx
 export const addNumber = cvx
   .mutation()
   .use(authMiddleware)
-  .args({ value: v.number() })
+  .input({ value: v.number() })
   .returns(v.id("numbers"))
-  .handler(async (ctx, args) => {
-    console.log(`User ${ctx.user.name} is adding ${args.value}`);
-    return await ctx.db.insert("numbers", { value: args.value });
+  .handler(async ({ context, input }) => {
+    console.log(`User ${context.user.name} is adding ${input.value}`);
+    return await context.db.insert("numbers", { value: input.value });
   });
 
 // Multiple middleware composition
@@ -77,16 +76,16 @@ export const listNumbersWithTimestamp = cvx
   .query()
   .use(authMiddleware)
   .use(addTimestamp)
-  .args({ count: v.number() })
-  .handler(async (ctx, args) => {
-    const numbers = await ctx.db
+  .input({ count: v.number() })
+  .handler(async ({ context, input }) => {
+    const numbers = await context.db
       .query("numbers")
       .order("desc")
-      .take(args.count);
+      .take(input.count);
 
     return {
-      viewer: ctx.user.name,
-      timestamp: ctx.timestamp,
+      viewer: context.user.name,
+      timestamp: context.timestamp,
       numbers: numbers.map((n) => n.value),
     };
   });
@@ -95,9 +94,9 @@ export const listNumbersWithTimestamp = cvx
 export const internalListAll = cvx
   .query()
   .internal()
-  .args({})
-  .handler(async (ctx, _args) => {
-    const numbers = await ctx.db.query("numbers").collect();
+  .input({})
+  .handler(async ({ context }) => {
+    const numbers = await context.db.query("numbers").collect();
     return numbers;
   });
 
@@ -114,9 +113,9 @@ export const quickQuery = cvx
       });
     }),
   )
-  .args({ limit: v.number() })
-  .handler(async (ctx, args) => {
-    console.log(`Request ${ctx.requestId}`);
-    const numbers = await ctx.db.query("numbers").take(args.limit);
+  .input({ limit: v.number() })
+  .handler(async ({ context, input }) => {
+    console.log(`Request ${context.requestId}`);
+    const numbers = await context.db.query("numbers").take(input.limit);
     return numbers;
   });

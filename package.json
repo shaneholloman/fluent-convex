@@ -37,6 +37,9 @@
   ],
   "author": "Mike Cann",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mikeysee/fluent-convex.git"

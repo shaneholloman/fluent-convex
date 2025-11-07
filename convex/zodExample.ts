@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { cvx } from "./lib3/convex_builder";
+import { cvx } from "./lib3/builder";
 
 // Define Zod schemas
 const NumberInputSchema = z.object({
@@ -75,7 +75,7 @@ export const protectedZodQuery = cvx
     z.object({
       limit: z.number().int().positive().default(10),
       offset: z.number().int().nonnegative().default(0),
-    })
+    }),
   )
   .handler(async ({ context, input }) => {
     const numbers = await context.db
@@ -119,10 +119,9 @@ export const complexZodQuery = cvx
   .handler(async ({ context, input }) => {
     // All Zod validation happens automatically, including the refinement!
     console.log(
-      `Querying from ${input.startDate} to ${input.endDate}, sorted by ${input.sortBy}`
+      `Querying from ${input.startDate} to ${input.endDate}, sorted by ${input.sortBy}`,
     );
 
     const numbers = await context.db.query("numbers").collect();
     return numbers.slice(0, 10);
   });
-

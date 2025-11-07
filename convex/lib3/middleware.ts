@@ -1,5 +1,5 @@
 import type { Promisable } from "@orpc/shared";
-import type { Context } from "./convex_types";
+import type { Context } from "./types";
 
 export interface ConvexMiddlewareNextFnOptions<TOutContext extends Context> {
   context: TOutContext;
@@ -7,7 +7,7 @@ export interface ConvexMiddlewareNextFnOptions<TOutContext extends Context> {
 
 export interface ConvexMiddlewareNextFn {
   <U extends Context>(
-    options: ConvexMiddlewareNextFnOptions<U>
+    options: ConvexMiddlewareNextFnOptions<U>,
   ): Promisable<{ context: U }>;
 }
 
@@ -21,9 +21,8 @@ export interface ConvexMiddleware<
   TOutContext extends Context,
 > {
   (
-    options: ConvexMiddlewareOptions<TInContext>
+    options: ConvexMiddlewareOptions<TInContext>,
   ): Promisable<{ context: TOutContext }>;
 }
 
 export type AnyConvexMiddleware = ConvexMiddleware<any, any>;
-

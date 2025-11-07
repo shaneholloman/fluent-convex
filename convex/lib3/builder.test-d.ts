@@ -1,5 +1,5 @@
 import { describe, it, assertType } from "vitest";
-import { cvx } from "./convex_builder";
+import { cvx } from "./builder";
 import { v } from "convex/values";
 import { z } from "zod";
 import type { Id } from "../_generated/dataModel";

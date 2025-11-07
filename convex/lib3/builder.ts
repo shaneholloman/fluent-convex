@@ -1,20 +1,15 @@
 import {
-  query,
-  mutation,
-  action,
-  internalQuery,
-  internalMutation,
-  internalAction,
-} from "../_generated/server";
-import type {
-  RegisteredQuery,
-  RegisteredMutation,
-  RegisteredAction,
+  type RegisteredQuery,
+  type RegisteredMutation,
+  type RegisteredAction,
+  queryGeneric,
+  internalQueryGeneric,
+  mutationGeneric,
+  internalMutationGeneric,
+  actionGeneric,
+  internalActionGeneric,
 } from "convex/server";
-import type {
-  ConvexMiddleware,
-  AnyConvexMiddleware,
-} from "./convex_middleware";
+import type { ConvexMiddleware, AnyConvexMiddleware } from "./middleware";
 import type {
   Context,
   ConvexArgsValidator,
@@ -25,7 +20,7 @@ import type {
   QueryCtx,
   MutationCtx,
   ActionCtx,
-} from "./convex_types";
+} from "./types";
 import type { z } from "zod";
 import {
   isZodSchema,
@@ -346,19 +341,25 @@ export class ConvexBuilder<
     // Register with appropriate Convex function
     if (functionType === "query") {
       return (
-        visibility === "public" ? query(config) : internalQuery(config)
+        visibility === "public"
+          ? queryGeneric(config)
+          : internalQueryGeneric(config)
       ) as any;
     }
 
     if (functionType === "mutation") {
       return (
-        visibility === "public" ? mutation(config) : internalMutation(config)
+        visibility === "public"
+          ? mutationGeneric(config)
+          : internalMutationGeneric(config)
       ) as any;
     }
 
     if (functionType === "action") {
       return (
-        visibility === "public" ? action(config) : internalAction(config)
+        visibility === "public"
+          ? actionGeneric(config)
+          : internalActionGeneric(config)
       ) as any;
     }
 

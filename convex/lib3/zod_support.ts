@@ -25,8 +25,10 @@ export type InferZodType<T extends z.ZodType> = z.infer<T>;
 
 // Unified input type that accepts both Convex and Zod
 // Note: ZodEffects is for .refine() and other transformations
+// Convex accepts both PropertyValidators ({ key: v.type() }) and GenericValidator (v.object({ key: v.type() }))
 export type ValidatorInput =
   | PropertyValidators
+  | GenericValidator
   | z.ZodObject<any>
   | z.ZodEffects<any>;
 export type ReturnsValidatorInput = GenericValidator | z.ZodType;

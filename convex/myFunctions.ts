@@ -47,20 +47,20 @@ export const listNumbersSimpleWithZod = cvx
     };
   });
 
-// export const listNumbersSimpleWithZodInvalid = cvx
-//   .query()
-//   .input(z.number())
-//   .returns(z.object({ numbers: z.array(z.number()) }))
-//   .handler(async ({ context, input }) => {
-//     const numbers = await context.db
-//       .query("numbers")
-//       .order("desc")
-//       .take(input.count);
+export const listNumbersSimpleWithZodInvalid = cvx
+  .query()
+  .input(z.number())
+  .returns(z.object({ numbers: z.array(z.number()) }))
+  .handler(async ({ context, input }) => {
+    const numbers = await context.db
+      .query("numbers")
+      .order("desc")
+      .take(input.count);
 
-//     return {
-//       numbers: numbers.reverse().map((number) => number.value),
-//     };
-//   });
+    return {
+      numbers: numbers.reverse().map((number) => number.value),
+    };
+  });
 
 // A middleware that checks if the user is authenticated
 const authMiddleware = cvx.query().middleware(async ({ context, next }) => {

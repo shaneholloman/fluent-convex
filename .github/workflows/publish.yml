@@ -5,12 +5,14 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
 jobs:
   publish:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write # Required for npm provenance
+
     steps:
       - uses: actions/checkout@v4
 
@@ -21,9 +23,6 @@ jobs:
 
       - name: Upgrade npm for Trusted Publishing
         run: npm install -g npm@latest
-
-      - name: Check npm version
-        run: npm --version
 
       - name: Install dependencies
         run: |

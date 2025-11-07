@@ -1,4 +1,4 @@
-export { ConvexBuilder, cvx } from "./builder";
+export { ConvexBuilder, convex } from "./builder";
 
 export type {
   ConvexMiddleware,

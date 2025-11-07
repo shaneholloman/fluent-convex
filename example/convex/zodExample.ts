@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { cvx } from "fluent-convex";
+import { convex } from "fluent-convex";
 
 // Define Zod schemas
 const NumberInputSchema = z.object({
@@ -13,7 +13,7 @@ const UserSchema = z.object({
 });
 
 // Example 1: Using Zod for input validation
-export const listNumbersWithZod = cvx
+export const listNumbersWithZod = convex
   .query()
   .input(NumberInputSchema)
   .handler(async ({ context, input }) => {
@@ -34,7 +34,7 @@ const NumbersResponseSchema = z.object({
   numbers: z.array(z.number()),
 });
 
-export const listNumbersWithZodReturns = cvx
+export const listNumbersWithZodReturns = convex
   .query()
   .input(NumberInputSchema)
   .returns(NumbersResponseSchema as any) // Need to cast for now due to Zod -> Convex type complexity
@@ -51,7 +51,7 @@ export const listNumbersWithZodReturns = cvx
   });
 
 // Example 3: Middleware with Zod-validated query
-const authMiddleware = cvx.query().middleware(async ({ context, next }) => {
+const authMiddleware = convex.query().middleware(async ({ context, next }) => {
   const identity = await context.auth.getUserIdentity();
   if (!identity) {
     throw new Error("Unauthorized");
@@ -68,7 +68,7 @@ const authMiddleware = cvx.query().middleware(async ({ context, next }) => {
   });
 });
 
-export const protectedZodQuery = cvx
+export const protectedZodQuery = convex
   .query()
   .use(authMiddleware)
   .input(
@@ -92,7 +92,7 @@ export const protectedZodQuery = cvx
 // Example 4: Mixing Convex validators and Zod
 import { v } from "convex/values";
 
-export const mixedValidation = cvx
+export const mixedValidation = convex
   .query()
   .input(NumberInputSchema) // Using Zod
   .returns(v.object({ count: v.number() })) // Using Convex validator
@@ -113,7 +113,7 @@ const ComplexInputSchema = z
     message: "End date must be after start date",
   });
 
-export const complexZodQuery = cvx
+export const complexZodQuery = convex
   .query()
   .input(ComplexInputSchema)
   .handler(async ({ context, input }) => {

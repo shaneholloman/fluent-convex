@@ -19,11 +19,11 @@ npm install fluent-convex convex convex-helpers zod
 ## Quick Start
 
 ```ts
-import { cvx } from "fluent-convex";
+import { convex } from "fluent-convex";
 import { v } from "convex/values";
 
 // Simple query
-export const listNumbers = cvx
+export const listNumbers = convex
   .query()
   .input({ count: v.number() })
   .handler(async ({ context, input }) => {
@@ -36,7 +36,7 @@ export const listNumbers = cvx
   });
 
 // With middleware
-const authMiddleware = cvx.query().middleware(async ({ context, next }) => {
+const authMiddleware = convex.query().middleware(async ({ context, next }) => {
   const identity = await context.auth.getUserIdentity();
   if (!identity) {
     throw new Error("Unauthorized");
@@ -53,7 +53,7 @@ const authMiddleware = cvx.query().middleware(async ({ context, next }) => {
   });
 });
 
-export const listNumbersAuth = cvx
+export const listNumbersAuth = convex
   .query()
   .use(authMiddleware)
   .input({ count: v.number() })
@@ -74,9 +74,9 @@ export const listNumbersAuth = cvx
 
 ```ts
 import { z } from "zod";
-import { cvx } from "fluent-convex";
+import { convex } from "fluent-convex";
 
-export const listNumbersWithZod = cvx
+export const listNumbersWithZod = convex
   .query()
   .input(
     z.object({

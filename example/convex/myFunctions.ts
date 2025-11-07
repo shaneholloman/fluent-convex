@@ -1,9 +1,9 @@
 import { v } from "convex/values";
-import { cvx } from "fluent-convex";
+import { convex } from "fluent-convex";
 import { z } from "zod";
 
 // Example: Simple query without middleware
-export const listNumbersSimple = cvx
+export const listNumbersSimple = convex
   .query()
   .input({ count: v.number() })
   .handler(async ({ context, input }) => {
@@ -17,7 +17,7 @@ export const listNumbersSimple = cvx
     };
   });
 
-export const listNumbersSimpleWithConvexValidators = cvx
+export const listNumbersSimpleWithConvexValidators = convex
   .query()
   .input(v.object({ count: v.number() }))
   .returns(v.object({ numbers: v.array(v.number()) }))
@@ -32,7 +32,7 @@ export const listNumbersSimpleWithConvexValidators = cvx
     };
   });
 
-export const listNumbersSimpleWithZod = cvx
+export const listNumbersSimpleWithZod = convex
   .query()
   .input(z.object({ count: z.number() }))
   .returns(z.object({ numbers: z.array(z.number()) }))
@@ -48,7 +48,7 @@ export const listNumbersSimpleWithZod = cvx
   });
 
 // A middleware that checks if the user is authenticated
-const authMiddleware = cvx.query().middleware(async ({ context, next }) => {
+const authMiddleware = convex.query().middleware(async ({ context, next }) => {
   const identity = await context.auth.getUserIdentity();
   if (!identity) {
     throw new Error("Unauthorized");
@@ -66,7 +66,7 @@ const authMiddleware = cvx.query().middleware(async ({ context, next }) => {
 });
 
 // A query that requires authentication
-export const listNumbersAuth = cvx
+export const listNumbersAuth = convex
   .query()
   .use(authMiddleware)
   .input({ count: v.number() })
@@ -83,7 +83,7 @@ export const listNumbersAuth = cvx
   });
 
 // Mutation with the same middleware
-export const addNumber = cvx
+export const addNumber = convex
   .mutation()
   .use(authMiddleware)
   .input({ value: v.number() })
@@ -95,7 +95,7 @@ export const addNumber = cvx
   });
 
 // Multiple middleware composition
-const addTimestamp = cvx.query().middleware(async ({ context, next }) => {
+const addTimestamp = convex.query().middleware(async ({ context, next }) => {
   return next({
     context: {
       ...context,
@@ -104,7 +104,7 @@ const addTimestamp = cvx.query().middleware(async ({ context, next }) => {
   });
 });
 
-export const listNumbersWithTimestamp = cvx
+export const listNumbersWithTimestamp = convex
   .query()
   .use(authMiddleware)
   .use(addTimestamp)
@@ -123,7 +123,7 @@ export const listNumbersWithTimestamp = cvx
   });
 
 // Internal query
-export const internalListAll = cvx
+export const internalListAll = convex
   .query()
   .internal()
   .input({})
@@ -134,10 +134,10 @@ export const internalListAll = cvx
   });
 
 // You can also define middleware inline
-export const quickQuery = cvx
+export const quickQuery = convex
   .query()
   .use(
-    cvx.query().middleware(async ({ context, next }) => {
+    convex.query().middleware(async ({ context, next }) => {
       return next({
         context: {
           ...context,

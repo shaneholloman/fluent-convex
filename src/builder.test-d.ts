@@ -1,12 +1,12 @@
 import { describe, it, assertType } from "vitest";
-import { cvx } from "./builder";
+import { convex } from "./builder";
 import { v } from "convex/values";
 import { z } from "zod";
 
 describe("ConvexBuilder Type Tests", () => {
   describe("input validation", () => {
     it("should accept plain Convex PropertyValidators", () => {
-      cvx
+      convex
         .query()
         .input({ count: v.number() })
         .handler(async ({ input }) => {
@@ -16,7 +16,7 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("should accept Convex v.object() validators", () => {
-      cvx
+      convex
         .query()
         .input(v.object({ count: v.number() }))
         .handler(async ({ input }) => {
@@ -26,7 +26,7 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("should accept Zod object schemas", () => {
-      cvx
+      convex
         .query()
         .input(z.object({ count: z.number() }))
         .handler(async ({ input }) => {
@@ -37,16 +37,16 @@ describe("ConvexBuilder Type Tests", () => {
 
     it("should reject Zod primitive schemas (not objects)", () => {
       // @ts-expect-error z.number() is not a valid input validator
-      cvx.query().input(z.number());
+      convex.query().input(z.number());
     });
 
     it("should reject Zod string schemas", () => {
       // @ts-expect-error z.string() is not a valid input validator
-      cvx.query().input(z.string());
+      convex.query().input(z.string());
     });
 
     it("should accept Zod schemas with refinements", () => {
-      cvx
+      convex
         .query()
         .input(z.object({ count: z.number() }).refine((data) => data.count > 0))
         .handler(async ({ input }) => {
@@ -58,7 +58,7 @@ describe("ConvexBuilder Type Tests", () => {
 
   describe("returns validation", () => {
     it("should accept Convex return validators", () => {
-      cvx
+      convex
         .query()
         .input({ count: v.number() })
         .returns(v.object({ numbers: v.array(v.number()) }))
@@ -68,7 +68,7 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("should accept Zod return validators", () => {
-      cvx
+      convex
         .query()
         .input({ count: v.number() })
         .returns(z.object({ numbers: z.array(z.number()) }))
@@ -78,7 +78,7 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("should accept Zod primitive return types", () => {
-      cvx
+      convex
         .query()
         .input({ count: v.number() })
         .returns(z.number())
@@ -90,7 +90,7 @@ describe("ConvexBuilder Type Tests", () => {
 
   describe("middleware context transformation", () => {
     it("should extend context with middleware", () => {
-      const authMiddleware = cvx
+      const authMiddleware = convex
         .query()
         .middleware(async ({ context, next }) => {
           return next({
@@ -101,7 +101,7 @@ describe("ConvexBuilder Type Tests", () => {
           });
         });
 
-      cvx
+      convex
         .query()
         .use(authMiddleware)
         .input({ count: v.number() })
@@ -118,7 +118,7 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("should chain multiple middleware", () => {
-      const authMiddleware = cvx
+      const authMiddleware = convex
         .query()
         .middleware(async ({ context, next }) => {
           return next({
@@ -129,7 +129,7 @@ describe("ConvexBuilder Type Tests", () => {
           });
         });
 
-      const loggingMiddleware = cvx
+      const loggingMiddleware = convex
         .query()
         .middleware(async ({ context, next }) => {
           return next({
@@ -140,7 +140,7 @@ describe("ConvexBuilder Type Tests", () => {
           });
         });
 
-      cvx
+      convex
         .query()
         .use(authMiddleware)
         .use(loggingMiddleware)
@@ -155,7 +155,7 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("should work with mutations", () => {
-      const authMiddleware = cvx
+      const authMiddleware = convex
         .mutation()
         .middleware(async ({ context, next }) => {
           return next({
@@ -166,7 +166,7 @@ describe("ConvexBuilder Type Tests", () => {
           });
         });
 
-      cvx
+      convex
         .mutation()
         .use(authMiddleware)
         .input({ name: v.string() })
@@ -179,7 +179,7 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("should work with actions", () => {
-      const authMiddleware = cvx
+      const authMiddleware = convex
         .action()
         .middleware(async ({ context, next }) => {
           return next({
@@ -190,7 +190,7 @@ describe("ConvexBuilder Type Tests", () => {
           });
         });
 
-      cvx
+      convex
         .action()
         .use(authMiddleware)
         .input({ url: v.string() })
@@ -202,7 +202,7 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("should respect middleware application order", () => {
-      const first = cvx.query().middleware(async ({ context, next }) => {
+      const first = convex.query().middleware(async ({ context, next }) => {
         return next({
           context: {
             ...context,
@@ -211,7 +211,7 @@ describe("ConvexBuilder Type Tests", () => {
         });
       });
 
-      const second = cvx.query().middleware(async ({ context, next }) => {
+      const second = convex.query().middleware(async ({ context, next }) => {
         return next({
           context: {
             ...context,
@@ -220,7 +220,7 @@ describe("ConvexBuilder Type Tests", () => {
         });
       });
 
-      cvx
+      convex
         .query()
         .use(first)
         .use(second)
@@ -236,7 +236,7 @@ describe("ConvexBuilder Type Tests", () => {
 
   describe("function types", () => {
     it("should create queries", () => {
-      cvx
+      convex
         .query()
         .input({ id: v.string() })
         .handler(async ({ input }) => {
@@ -246,7 +246,7 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("should create mutations", () => {
-      cvx
+      convex
         .mutation()
         .input({ name: v.string() })
         .handler(async ({ input }) => {
@@ -256,7 +256,7 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("should create actions", () => {
-      cvx
+      convex
         .action()
         .input({ url: v.string() })
         .handler(async ({ input }) => {
@@ -266,7 +266,7 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("should create internal queries", () => {
-      cvx
+      convex
         .query()
         .internal()
         .input({ id: v.string() })
@@ -277,7 +277,7 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("should create internal mutations", () => {
-      cvx
+      convex
         .mutation()
         .internal()
         .input({ value: v.number() })
@@ -289,7 +289,7 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("should create internal actions", () => {
-      cvx
+      convex
         .action()
         .internal()
         .input({ url: v.string() })
@@ -302,7 +302,7 @@ describe("ConvexBuilder Type Tests", () => {
 
   describe("optional input", () => {
     it("should work without input validation", () => {
-      cvx.query().handler(async ({ input }) => {
+      convex.query().handler(async ({ input }) => {
         assertType<Record<never, never>>(input);
         return { success: true };
       });
@@ -311,7 +311,7 @@ describe("ConvexBuilder Type Tests", () => {
 
   describe("complex types", () => {
     it("should handle nested Zod object schemas", () => {
-      cvx
+      convex
         .query()
         .input(
           z.object({
@@ -332,7 +332,7 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("should handle optional fields", () => {
-      cvx
+      convex
         .query()
         .input({ name: v.string(), age: v.optional(v.number()) })
         .handler(async ({ input }) => {
@@ -344,7 +344,7 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("should handle v.union()", () => {
-      cvx
+      convex
         .query()
         .input({
           value: v.union(v.string(), v.number()),
@@ -356,7 +356,7 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("should handle v.array()", () => {
-      cvx
+      convex
         .query()
         .input({
           tags: v.array(v.string()),
@@ -368,7 +368,7 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("should handle nested v.object()", () => {
-      cvx
+      convex
         .query()
         .input({
           user: v.object({
@@ -383,7 +383,7 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("should handle v.literal()", () => {
-      cvx
+      convex
         .query()
         .input({
           kind: v.literal("user"),
@@ -395,7 +395,7 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("should handle mix of optional and required fields", () => {
-      cvx
+      convex
         .query()
         .input({
           required: v.string(),
@@ -413,7 +413,7 @@ describe("ConvexBuilder Type Tests", () => {
 
   describe("context types per function", () => {
     it("queries should have db and auth", () => {
-      cvx
+      convex
         .query()
         .input({ id: v.string() })
         .handler(async ({ context }) => {
@@ -424,7 +424,7 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("mutations should have db and auth", () => {
-      cvx
+      convex
         .mutation()
         .input({ name: v.string() })
         .handler(async ({ context }) => {
@@ -435,7 +435,7 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("actions should have auth and scheduler", () => {
-      cvx
+      convex
         .action()
         .input({ url: v.string() })
         .handler(async ({ context }) => {
@@ -448,7 +448,7 @@ describe("ConvexBuilder Type Tests", () => {
 
   describe("order of operations", () => {
     it("should allow .internal() before function type", () => {
-      cvx
+      convex
         .internal()
         .query()
         .input({ id: v.string() })
@@ -459,7 +459,7 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("should allow .internal() after function type", () => {
-      cvx
+      convex
         .query()
         .internal()
         .input({ id: v.string() })

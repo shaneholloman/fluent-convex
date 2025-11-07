@@ -281,7 +281,7 @@ export class ConvexBuilder<
   }
 }
 
-export const cvx = new ConvexBuilder<
+export const convex = new ConvexBuilder<
   undefined,
   Record<never, never>,
   Record<never, never>,

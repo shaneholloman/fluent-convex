@@ -1,5 +1,4 @@
-import type { Promisable } from "@orpc/shared";
-import type { Context } from "./types";
+import { Context, Promisable } from "./types";
 
 export interface ConvexMiddlewareOptions<TInContext extends Context> {
   context: TInContext;
@@ -13,7 +12,7 @@ export interface ConvexMiddleware<
   TOutContext extends Context,
 > {
   (
-    options: ConvexMiddlewareOptions<TInContext>
+    options: ConvexMiddlewareOptions<TInContext>,
   ): Promisable<{ context: TOutContext }>;
 }
 

@@ -92,7 +92,7 @@ export const listNumbersAuth = convex
   });
 
 // Mutation with the same middleware
-export const addNumber = convex
+export const addNumberAuth = convex
   .mutation()
   .use(authMiddleware)
   .input({ value: v.number() })
@@ -103,7 +103,7 @@ export const addNumber = convex
     return await context.db.insert("numbers", { value: input.value });
   });
 
-export const addNumberUnauth = convex
+export const addNumber = convex
   .mutation()
   .input({ value: v.number() })
   .returns(v.id("numbers"))

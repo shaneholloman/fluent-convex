@@ -194,7 +194,7 @@ export class ConvexBuilder<
     TFunctionType,
     TInitialContext,
     TCurrentContext,
-    ConvexArgsValidator,
+    UInput extends ConvexArgsValidator ? UInput : ConvexArgsValidator,
     TReturnsValidator,
     TVisibility
   > {
@@ -216,7 +216,7 @@ export class ConvexBuilder<
     TInitialContext,
     TCurrentContext,
     TArgsValidator,
-    ConvexReturnsValidator,
+    UReturns extends ConvexReturnsValidator ? UReturns : ConvexReturnsValidator,
     TVisibility
   > {
     const convexValidator = isZodSchema(validator)

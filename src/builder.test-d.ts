@@ -1,7 +1,16 @@
 import { describe, it, assertType } from "vitest";
-import { convex } from "./builder";
 import { v } from "convex/values";
 import { z } from "zod";
+import { defineSchema, defineTable } from "convex/server";
+import { createBuilder } from "./builder";
+
+const schema = defineSchema({
+  numbers: defineTable({
+    value: v.number(),
+  }),
+});
+
+const convex = createBuilder(schema);
 
 describe("ConvexBuilder Type Tests", () => {
   describe("input validation", () => {

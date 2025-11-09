@@ -306,19 +306,6 @@ export class ConvexBuilder<
   }
 }
 
-export const convex = new ConvexBuilder<
-  GenericDataModel,
-  undefined,
-  Record<never, never>,
-  Record<never, never>,
-  undefined,
-  undefined,
-  "public"
->({
-  middlewares: [],
-  visibility: "public",
-});
-
 export function createBuilder<TSchema extends SchemaDefinition<any, boolean>>(
   _schema: TSchema
 ): ConvexBuilder<

@@ -20,6 +20,14 @@
     "isolatedModules": true,
     "noEmit": true
   },
-  "include": ["./**/*"],
+  "include": [
+    "./**/*",
+    "../../src/builder.test-d.ts",
+    "../../src/builder.ts",
+    "../../src/index.ts",
+    "../../src/middleware.ts",
+    "../../src/types.ts",
+    "../../src/zod_support.ts"
+  ],
   "exclude": ["./_generated"]
 }

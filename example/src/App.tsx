@@ -1,122 +1,258 @@
-import { useMutation, useQuery } from "convex/react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
+import { useState } from "react";
 
 export default function App() {
   return (
     <>
       <header className="sticky top-0 z-10 bg-light dark:bg-dark p-4 border-b-2 border-slate-200 dark:border-slate-800">
-        Convex + React
+        Fluent Convex - Testing Library Types
       </header>
-      <main className="p-8 flex flex-col gap-16">
-        <h1 className="text-4xl font-bold text-center">Convex + React</h1>
-        <Content />
+      <main className="p-8 flex flex-col gap-8">
+        <h1 className="text-4xl font-bold text-center">Fluent Convex</h1>
+        <NumbersList />
+        <NumberStats />
+        <FilteredNumbers />
+        <Actions />
       </main>
     </>
   );
 }
 
-function Content() {
+function NumbersList() {
+  // Testing PropertyValidators with simple input
   const { numbers } =
-    useQuery(api.myFunctions.listNumbersSimple, {
-      count: 10,
-    }) ?? {};
+    useQuery(api.myFunctions.listNumbersSimple, { count: 10 }) ?? {};
+
+  // Testing PropertyValidators with optional fields
   const addNumber = useMutation(api.myFunctions.addNumber);
+  const addWithMetadata = useMutation(api.myFunctions.addNumberWithMetadata);
+
+  // Testing Zod validator with refinement
+  const addPositive = useMutation(api.myFunctions.addPositiveNumber);
+  const deleteAll = useMutation(api.myFunctions.deleteAllNumbers);
+
+  const [label, setLabel] = useState("");
 
   if (numbers === undefined) {
     return (
-      <div className="mx-auto">
-        <p>loading... (consider a loading skeleton)</p>
+      <div className="flex flex-col gap-4 p-4 bg-slate-100 dark:bg-slate-900 rounded-lg max-w-2xl mx-auto">
+        <p className="text-center">Loading numbers...</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-8 max-w-lg mx-auto">
-      <p>Welcome {"Anonymous"}!</p>
-      <p>
-        Click the button below and open this page in another window - this data
-        is persisted in the Convex cloud database!
+    <div className="flex flex-col gap-4 p-4 bg-slate-100 dark:bg-slate-900 rounded-lg max-w-2xl mx-auto">
+      <h2 className="text-2xl font-bold">Numbers List</h2>
+      <p className="text-sm text-slate-600 dark:text-slate-400">
+        Testing PropertyValidators and Zod validators
       </p>
-      <p>
+
+      <div className="flex gap-2 flex-wrap">
         <button
-          className="bg-dark dark:bg-light text-light dark:text-dark text-sm px-4 py-2 rounded-md border-2"
+          className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-md"
           onClick={() => {
-            void addNumber({ value: Math.floor(Math.random() * 10) });
+            void addNumber({ value: Math.floor(Math.random() * 100) - 50 });
           }}
         >
-          Add a random number
+          Add Random (-50 to 50)
         </button>
-      </p>
-      <p>
-        Numbers:{" "}
-        {numbers?.length === 0
-          ? "Click the button!"
-          : (numbers?.join(", ") ?? "...")}
-      </p>
-      <p>
-        Edit{" "}
-        <code className="text-sm font-bold font-mono bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded-md">
-          convex/myFunctions.ts
-        </code>{" "}
-        to change your backend
-      </p>
-      <p>
-        Edit{" "}
-        <code className="text-sm font-bold font-mono bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded-md">
-          src/App.tsx
-        </code>{" "}
-        to change your frontend
-      </p>
-      <div className="flex flex-col">
-        <p className="text-lg font-bold">Useful resources:</p>
-        <div className="flex gap-2">
-          <div className="flex flex-col gap-2 w-1/2">
-            <ResourceCard
-              title="Convex docs"
-              description="Read comprehensive documentation for all Convex features."
-              href="https://docs.convex.dev/home"
-            />
-            <ResourceCard
-              title="Stack articles"
-              description="Learn about best practices, use cases, and more from a growing
-            collection of articles, videos, and walkthroughs."
-              href="https://www.typescriptlang.org/docs/handbook/2/basic-types.html"
-            />
-          </div>
-          <div className="flex flex-col gap-2 w-1/2">
-            <ResourceCard
-              title="Templates"
-              description="Browse our collection of templates to get started quickly."
-              href="https://www.convex.dev/templates"
-            />
-            <ResourceCard
-              title="Discord"
-              description="Join our developer community to ask questions, trade tips & tricks,
-            and show off your projects."
-              href="https://www.convex.dev/community"
-            />
-          </div>
-        </div>
+
+        <button
+          className="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-md"
+          onClick={() => {
+            void addPositive({
+              value: Math.floor(Math.random() * 100) + 1,
+              description: "Random positive number",
+            });
+          }}
+        >
+          Add Positive (Zod validation)
+        </button>
+
+        <button
+          className="bg-purple-600 hover:bg-purple-700 text-white text-sm px-4 py-2 rounded-md"
+          onClick={() => {
+            void addWithMetadata({
+              value: Math.floor(Math.random() * 10),
+              label: label || undefined,
+              tags: ["test", "demo"],
+            });
+          }}
+        >
+          Add with Metadata (optional fields)
+        </button>
+
+        <button
+          className="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded-md"
+          onClick={() => {
+            if (confirm("Delete all numbers?")) {
+              void deleteAll({});
+            }
+          }}
+        >
+          Delete All
+        </button>
+      </div>
+
+      <input
+        type="text"
+        placeholder="Optional label"
+        value={label}
+        onChange={(e) => setLabel(e.target.value)}
+        className="px-3 py-2 border rounded-md dark:bg-slate-800 dark:border-slate-700"
+      />
+
+      <div className="p-4 bg-white dark:bg-slate-800 rounded-md">
+        <p className="font-mono text-sm">
+          Numbers ({numbers.length}):{" "}
+          {numbers.length === 0
+            ? "Click a button to add numbers!"
+            : numbers.join(", ")}
+        </p>
       </div>
     </div>
   );
 }
 
-function ResourceCard({
-  title,
-  description,
-  href,
+function NumberStats() {
+  // Testing Zod with optional fields and complex return type
+  const stats = useQuery(api.myFunctions.getNumberStats, { limit: 100 });
+
+  if (!stats) {
+    return null;
+  }
+
+  return (
+    <div className="flex flex-col gap-4 p-4 bg-slate-100 dark:bg-slate-900 rounded-lg max-w-2xl mx-auto">
+      <h2 className="text-2xl font-bold">Statistics</h2>
+      <p className="text-sm text-slate-600 dark:text-slate-400">
+        Testing Zod return validators with complex types
+      </p>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard label="Total" value={stats.total} />
+        <StatCard label="Average" value={stats.average.toFixed(2)} suffix="" />
+        <StatCard label="Min" value={stats.min ?? "N/A"} suffix="" />
+        <StatCard label="Max" value={stats.max ?? "N/A"} suffix="" />
+      </div>
+
+      {stats.numbers.length > 0 && (
+        <div className="p-4 bg-white dark:bg-slate-800 rounded-md">
+          <p className="text-sm font-semibold mb-2">Recent numbers:</p>
+          <p className="font-mono text-sm">{stats.numbers.join(", ")}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FilteredNumbers() {
+  // Testing Zod enum types
+  const [filter, setFilter] = useState<
+    "all" | "positive" | "negative" | "zero"
+  >("all");
+  const filtered = useQuery(api.myFunctions.filterNumbers, {
+    filter,
+    limit: 10,
+  });
+
+  if (!filtered) {
+    return null;
+  }
+
+  return (
+    <div className="flex flex-col gap-4 p-4 bg-slate-100 dark:bg-slate-900 rounded-lg max-w-2xl mx-auto">
+      <h2 className="text-2xl font-bold">Filtered View</h2>
+      <p className="text-sm text-slate-600 dark:text-slate-400">
+        Testing Zod enum validators
+      </p>
+
+      <div className="flex gap-2 flex-wrap">
+        {(["all", "positive", "negative", "zero"] as const).map((f) => (
+          <button
+            key={f}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              filter === f
+                ? "bg-blue-600 text-white"
+                : "bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700"
+            }`}
+            onClick={() => setFilter(f)}
+          >
+            {f.charAt(0).toUpperCase() + f.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      <div className="p-4 bg-white dark:bg-slate-800 rounded-md">
+        <p className="text-sm mb-2">
+          <span className="font-semibold">Filter:</span> {filtered.filter} (
+          {filtered.totalMatching} total)
+        </p>
+        <p className="font-mono text-sm">
+          {filtered.numbers.length === 0
+            ? `No ${filtered.filter} numbers found`
+            : filtered.numbers.join(", ")}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function Actions() {
+  // Testing actions
+  const generateNumbers = useAction(api.myFunctions.generateRandomNumbers);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  return (
+    <div className="flex flex-col gap-4 p-4 bg-slate-100 dark:bg-slate-900 rounded-lg max-w-2xl mx-auto">
+      <h2 className="text-2xl font-bold">Actions</h2>
+      <p className="text-sm text-slate-600 dark:text-slate-400">
+        Testing action functions
+      </p>
+
+      <div className="flex gap-2 flex-wrap">
+        <button
+          className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-md disabled:opacity-50"
+          disabled={isGenerating}
+          onClick={() => {
+            setIsGenerating(true);
+            generateNumbers({ count: 5, min: 1, max: 100 })
+              .then((nums) => {
+                alert(`Generated numbers: ${nums.join(", ")}`);
+              })
+              .catch((err) => {
+                alert(`Error: ${err.message}`);
+              })
+              .finally(() => {
+                setIsGenerating(false);
+              });
+          }}
+        >
+          {isGenerating ? "Generating..." : "Generate 5 Random Numbers"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  suffix = "",
 }: {
-  title: string;
-  description: string;
-  href: string;
+  label: string;
+  value: string | number;
+  suffix?: string;
 }) {
   return (
-    <div className="flex flex-col gap-2 bg-slate-200 dark:bg-slate-800 p-4 rounded-md h-28 overflow-auto">
-      <a href={href} className="text-sm underline hover:no-underline">
-        {title}
-      </a>
-      <p className="text-xs">{description}</p>
+    <div className="p-4 bg-white dark:bg-slate-800 rounded-md">
+      <p className="text-sm text-slate-600 dark:text-slate-400">{label}</p>
+      <p className="text-2xl font-bold">
+        {value}
+        {suffix}
+      </p>
     </div>
   );
 }

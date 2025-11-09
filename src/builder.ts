@@ -8,6 +8,9 @@ import {
   internalMutationGeneric,
   actionGeneric,
   internalActionGeneric,
+  type GenericDataModel,
+  type DataModelFromSchemaDefinition,
+  type SchemaDefinition,
 } from "convex/server";
 import type { ConvexMiddleware, AnyConvexMiddleware } from "./middleware";
 import type {
@@ -26,6 +29,8 @@ import {
   toConvexValidator,
   type ValidatorInput,
   type ReturnsValidatorInput,
+  type ToConvexArgsValidator,
+  type ToConvexReturnsValidator,
 } from "./zod_support";
 
 type InferredArgs<T extends ConvexArgsValidator | undefined> =
@@ -45,6 +50,7 @@ interface ConvexBuilderDef<
 }
 
 export class ConvexBuilder<
+  TDataModel extends GenericDataModel = GenericDataModel,
   TFunctionType extends FunctionType | undefined = undefined,
   TInitialContext extends Context = Record<never, never>,
   TCurrentContext extends Context = Record<never, never>,
@@ -71,6 +77,7 @@ export class ConvexBuilder<
   }
 
   $context<U extends Context>(): ConvexBuilder<
+    TDataModel,
     TFunctionType,
     U & Record<never, never>,
     U,
@@ -93,6 +100,7 @@ export class ConvexBuilder<
   use<UOutContext extends Context>(
     middleware: ConvexMiddleware<TCurrentContext, UOutContext>
   ): ConvexBuilder<
+    TDataModel,
     TFunctionType,
     TInitialContext,
     TCurrentContext & UOutContext,
@@ -107,9 +115,14 @@ export class ConvexBuilder<
   }
 
   query(): ConvexBuilder<
+    TDataModel,
     "query",
-    TInitialContext extends Record<never, never> ? QueryCtx : TInitialContext,
-    TCurrentContext extends Record<never, never> ? QueryCtx : TCurrentContext,
+    TInitialContext extends Record<never, never>
+      ? QueryCtx<TDataModel>
+      : TInitialContext,
+    TCurrentContext extends Record<never, never>
+      ? QueryCtx<TDataModel>
+      : TCurrentContext,
     TArgsValidator,
     TReturnsValidator,
     TVisibility
@@ -121,12 +134,13 @@ export class ConvexBuilder<
   }
 
   mutation(): ConvexBuilder<
+    TDataModel,
     "mutation",
     TInitialContext extends Record<never, never>
-      ? MutationCtx
+      ? MutationCtx<TDataModel>
       : TInitialContext,
     TCurrentContext extends Record<never, never>
-      ? MutationCtx
+      ? MutationCtx<TDataModel>
       : TCurrentContext,
     TArgsValidator,
     TReturnsValidator,
@@ -139,9 +153,14 @@ export class ConvexBuilder<
   }
 
   action(): ConvexBuilder<
+    TDataModel,
     "action",
-    TInitialContext extends Record<never, never> ? ActionCtx : TInitialContext,
-    TCurrentContext extends Record<never, never> ? ActionCtx : TCurrentContext,
+    TInitialContext extends Record<never, never>
+      ? ActionCtx<TDataModel>
+      : TInitialContext,
+    TCurrentContext extends Record<never, never>
+      ? ActionCtx<TDataModel>
+      : TCurrentContext,
     TArgsValidator,
     TReturnsValidator,
     TVisibility
@@ -153,6 +172,7 @@ export class ConvexBuilder<
   }
 
   internal(): ConvexBuilder<
+    TDataModel,
     TFunctionType,
     TInitialContext,
     TCurrentContext,
@@ -169,10 +189,11 @@ export class ConvexBuilder<
   input<UInput extends ValidatorInput>(
     validator: UInput
   ): ConvexBuilder<
+    TDataModel,
     TFunctionType,
     TInitialContext,
     TCurrentContext,
-    ConvexArgsValidator,
+    ToConvexArgsValidator<UInput>,
     TReturnsValidator,
     TVisibility
   > {
@@ -189,11 +210,12 @@ export class ConvexBuilder<
   returns<UReturns extends ReturnsValidatorInput>(
     validator: UReturns
   ): ConvexBuilder<
+    TDataModel,
     TFunctionType,
     TInitialContext,
     TCurrentContext,
     TArgsValidator,
-    ConvexReturnsValidator,
+    ToConvexReturnsValidator<UReturns>,
     TVisibility
   > {
     const convexValidator = isZodSchema(validator)
@@ -245,7 +267,10 @@ export class ConvexBuilder<
     }
 
     const composedHandler = async (
-      baseCtx: QueryCtx | MutationCtx | ActionCtx,
+      baseCtx:
+        | QueryCtx<TDataModel>
+        | MutationCtx<TDataModel>
+        | ActionCtx<TDataModel>,
       baseArgs: InferredArgs<TArgsValidator>
     ) => {
       let currentContext: any = baseCtx;
@@ -282,6 +307,7 @@ export class ConvexBuilder<
 }
 
 export const convex = new ConvexBuilder<
+  GenericDataModel,
   undefined,
   Record<never, never>,
   Record<never, never>,
@@ -292,3 +318,20 @@ export const convex = new ConvexBuilder<
   middlewares: [],
   visibility: "public",
 });
+
+export function createBuilder<TSchema extends SchemaDefinition<any, boolean>>(
+  _schema: TSchema
+): ConvexBuilder<
+  DataModelFromSchemaDefinition<TSchema>,
+  undefined,
+  Record<never, never>,
+  Record<never, never>,
+  undefined,
+  undefined,
+  "public"
+> {
+  return new ConvexBuilder({
+    middlewares: [],
+    visibility: "public",
+  });
+}

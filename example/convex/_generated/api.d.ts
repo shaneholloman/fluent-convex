@@ -8,11 +8,11 @@
  * @module
  */
 
-import type * as lib_builder from "../lib/builder.js";
-import type * as lib_index from "../lib/index.js";
-import type * as lib_middleware from "../lib/middleware.js";
-import type * as lib_types from "../lib/types.js";
-import type * as lib_zod_support from "../lib/zod_support.js";
+import type * as lib_builder from "../../../src/builder.js";
+import type * as lib_index from "../../../src/index.js";
+import type * as lib_middleware from "../../../src/middleware.js";
+import type * as lib_types from "../../../src/types.js";
+import type * as lib_zod_support from "../../../src/zod_support.js";
 import type * as myFunctions from "../myFunctions.js";
 
 import type {

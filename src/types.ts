@@ -22,9 +22,14 @@ export type InferArgs<T extends ConvexArgsValidator> =
           : never;
       };
 
-export type QueryCtx = GenericQueryCtx<GenericDataModel>;
-export type MutationCtx = GenericMutationCtx<GenericDataModel>;
-export type ActionCtx = GenericActionCtx<GenericDataModel>;
+export type Promisable<T> = T | PromiseLike<T>;
+
+export type QueryCtx<DataModel extends GenericDataModel = GenericDataModel> =
+  GenericQueryCtx<DataModel>;
+export type MutationCtx<DataModel extends GenericDataModel = GenericDataModel> =
+  GenericMutationCtx<DataModel>;
+export type ActionCtx<DataModel extends GenericDataModel = GenericDataModel> =
+  GenericActionCtx<DataModel>;
 
 export type FunctionType = "query" | "mutation" | "action";
 export type Visibility = "public" | "internal";

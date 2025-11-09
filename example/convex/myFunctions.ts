@@ -1,6 +1,9 @@
 import { v } from "convex/values";
-import { convex } from "fluent-convex";
 import { z } from "zod";
+import { createBuilder } from "./lib";
+import schema from "./schema";
+
+const convex = createBuilder(schema);
 
 // Example: Simple query without middleware
 export const listNumbersSimple = convex

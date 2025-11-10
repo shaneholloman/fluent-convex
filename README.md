@@ -13,8 +13,10 @@ A fluent API builder for Convex functions with middleware support, inspired by [
 ## Installation
 
 ```bash
-npm install fluent-convex convex convex-helpers zod
+npm install fluent-convex convex zod
 ```
+
+**Note:** `convex-helpers` is automatically installed as a dependency of `fluent-convex`, so you don't need to install it separately.
 
 ## Quick Start
 

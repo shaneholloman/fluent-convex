@@ -7,8 +7,8 @@ This package is automatically published to npm via GitHub Actions when version t
 The initial setup has been completed:
 
 1. ✅ npm account created
-2. ✅ First manual publish done (v0.1.0)
-3. ⏳ Configure Trusted Publishing (do this next!)
+2. ✅ Package published (current version: v0.3.0)
+3. ⏳ Configure Trusted Publishing (if not already done)
 
 ### Configure Trusted Publishing
 
@@ -32,24 +32,29 @@ That's it! No secrets, no tokens needed. GitHub Actions will authenticate direct
 
 ### Update the Version
 
-Use npm's built-in version command to bump the version in `package.json` and create a git tag:
+Use npm's built-in version command to bump the version in the package's `package.json` and create a git tag:
 
 ```bash
-# For a patch release (0.1.0 → 0.1.1)
+# Navigate to the package directory
+cd packages/fluent-convex
+
+# For a patch release (0.3.0 → 0.3.1)
 npm version patch
 
-# For a minor release (0.1.0 → 0.2.0)
+# For a minor release (0.3.0 → 0.4.0)
 npm version minor
 
-# For a major release (0.1.0 → 1.0.0)
+# For a major release (0.3.0 → 1.0.0)
 npm version major
 ```
 
 This command will:
 
-- Update the version in `package.json`
+- Update the version in `packages/fluent-convex/package.json`
 - Create a git commit with the message "X.Y.Z"
 - Create a git tag `vX.Y.Z`
+
+**Note:** Make sure you're in the `packages/fluent-convex` directory when running `npm version`, as that's where the actual package's `package.json` is located.
 
 ### Push to GitHub
 

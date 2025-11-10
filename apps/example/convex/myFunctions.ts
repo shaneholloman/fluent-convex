@@ -3,7 +3,11 @@ import { z } from "zod";
 import { createBuilder } from "fluent-convex";
 import schema from "./schema";
 import { convex } from "./lib";
-import { authMiddleware } from "./middleware";
+import {
+  addTimestamp,
+  authMiddleware,
+  authActionMiddleware,
+} from "./middleware";
 
 // Example: Simple query without middleware
 export const listNumbersSimple = convex
@@ -94,15 +98,6 @@ export const addNumber = convex
   });
 
 // Multiple middleware composition
-const addTimestamp = convex.query().middleware(async ({ context, next }) => {
-  return next({
-    context: {
-      ...context,
-      timestamp: Date.now(),
-    },
-  });
-});
-
 export const listNumbersWithTimestamp = convex
   .query()
   .use(authMiddleware)
@@ -235,7 +230,7 @@ export const addRandomNumber = convex
 
 export const addNumberAuthAction = convex
   .action()
-  .use(authMiddleware)
+  .use(authActionMiddleware)
   .input({ value: v.number() })
   .returns(
     v.object({

@@ -41,6 +41,17 @@ jobs:
       - name: Build package (verify)
         run: npm run build
 
+      - name: Check if version already published
+        working-directory: packages/fluent-convex
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view fluent-convex@$VERSION version > /dev/null 2>&1; then
+            echo "Error: Version $VERSION is already published to npm"
+            echo "Please bump the version in packages/fluent-convex/package.json and create a new tag"
+            exit 1
+          fi
+          echo "Version $VERSION is not published, proceeding with publish"
+
       - name: Publish to npm
         working-directory: packages/fluent-convex
         run: npm publish

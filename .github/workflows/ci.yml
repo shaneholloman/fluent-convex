@@ -21,12 +21,15 @@ jobs:
           rm -rf node_modules package-lock.json
           npm install
 
+      - name: Build package first
+        run: npm run build --workspace=packages/fluent-convex
+
       - name: Run type checking
         run: npm run typecheck
 
       - name: Run tests
         run: npm test
 
-      - name: Build package
+      - name: Build package (verify)
         run: npm run build
 

@@ -11,16 +11,36 @@ export type Context = Record<PropertyKey, any>;
 export type ConvexArgsValidator = PropertyValidators | GenericValidator;
 export type ConvexReturnsValidator = GenericValidator;
 
+type ValidatorType<T> = T extends GenericValidator ? T["type"] : never;
+
+type OptionalKeys<T extends Record<PropertyKey, any>> = {
+  [K in keyof T]: T[K] extends GenericValidator
+    ? T[K]["isOptional"] extends "optional"
+      ? K
+      : never
+    : never;
+}[keyof T];
+
+type RequiredKeys<T extends Record<PropertyKey, any>> = {
+  [K in keyof T]: T[K] extends GenericValidator
+    ? T[K]["isOptional"] extends "optional"
+      ? never
+      : K
+    : never;
+}[keyof T];
+
+type OptionalArgs<T extends Record<PropertyKey, any>> = {
+  [K in OptionalKeys<T>]?: T[K] extends GenericValidator
+    ? ValidatorType<T[K]> | undefined
+    : never;
+};
+
+type RequiredArgs<T extends Record<PropertyKey, any>> = {
+  [K in RequiredKeys<T>]: ValidatorType<T[K]>;
+};
+
 export type InferArgs<T extends ConvexArgsValidator> =
-  T extends GenericValidator
-    ? T["type"]
-    : {
-        [K in keyof T]: T[K] extends GenericValidator
-          ? T[K]["isOptional"] extends true
-            ? T[K]["type"] | undefined
-            : T[K]["type"]
-          : never;
-      };
+  T extends GenericValidator ? T["type"] : RequiredArgs<T> & OptionalArgs<T>;
 
 export type Promisable<T> = T | PromiseLike<T>;
 

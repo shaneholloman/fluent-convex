@@ -6,12 +6,19 @@ import type {
   GenericDataModel,
 } from "convex/server";
 
-export type Context = Record<PropertyKey, any>;
+export type Context = object;
 
 export type ConvexArgsValidator = PropertyValidators | GenericValidator;
 export type ConvexReturnsValidator = GenericValidator;
 
 type ValidatorType<T> = T extends GenericValidator ? T["type"] : never;
+
+export type EmptyObject = Record<never, never>;
+
+export type MaybeDefaultContext<
+  TExisting extends Context,
+  TFallback extends Context,
+> = TExisting extends EmptyObject ? TFallback : TExisting;
 
 type OptionalKeys<T extends Record<PropertyKey, any>> = {
   [K in keyof T]: T[K] extends GenericValidator

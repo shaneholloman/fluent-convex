@@ -1,5 +1,6 @@
 {
   "include": ["**/*.ts", "**/*.tsx", "public/script*.js"],
+  "exclude": ["vite.config.ts"],
   "compilerOptions": {
     "target": "ES2022",
     "jsx": "react-jsx",

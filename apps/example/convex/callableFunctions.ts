@@ -28,4 +28,5 @@ export const doSomethingWithNumbers = convex
     const { numbers } = await listNumbersSimple(context)(input);
 
     return numbers.map((n) => String(n)).join(", ");
-  });
+  })
+  .public();

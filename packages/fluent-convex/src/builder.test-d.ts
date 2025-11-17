@@ -820,16 +820,28 @@ describe("ConvexBuilder Type Tests", () => {
       assertType<typeof builder>(builder);
     });
 
-    it("should allow chaining .returns() after handler()", () => {
+    it("should prevent calling .returns() after handler()", () => {
       const builder = convex
         .query()
         .input({ count: v.number() })
         .handler(async () => {
           return { numbers: [1, 2, 3] };
-        })
-        .returns(v.object({ numbers: v.array(v.number()) }));
+        });
 
-      // Should be able to call .public() or .internal() after .returns()
+      // @ts-expect-error - ConvexBuilderWithHandler does not have a returns method. Call .returns() before .handler().
+      builder.returns(v.object({ numbers: v.array(v.number()) }));
+    });
+
+    it("should allow calling .returns() before handler()", () => {
+      const builder = convex
+        .query()
+        .input({ count: v.number() })
+        .returns(v.object({ numbers: v.array(v.number()) }))
+        .handler(async () => {
+          return { numbers: [1, 2, 3] };
+        });
+
+      // Should be able to call .public() or .internal() after .handler()
       assertType<typeof builder>(builder);
     });
   });

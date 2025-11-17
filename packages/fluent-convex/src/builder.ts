@@ -409,37 +409,6 @@ export class ConvexBuilderWithHandler<
     });
   }
 
-  returns<UReturns extends ReturnsValidatorInput>(
-    validator: UReturns
-  ): ConvexBuilderWithHandler<
-    TDataModel,
-    TFunctionType,
-    TInitialContext,
-    TCurrentContext,
-    TArgsValidator,
-    ToConvexReturnsValidator<UReturns>,
-    TVisibility,
-    THandlerReturn
-  > {
-    const convexValidator = isZodSchema(validator)
-      ? (toConvexValidator(validator) as ToConvexReturnsValidator<UReturns>)
-      : (validator as ToConvexReturnsValidator<UReturns>);
-
-    return new ConvexBuilderWithHandler<
-      TDataModel,
-      TFunctionType,
-      TInitialContext,
-      TCurrentContext,
-      TArgsValidator,
-      ToConvexReturnsValidator<UReturns>,
-      TVisibility,
-      THandlerReturn
-    >({
-      ...this.def,
-      returnsValidator: convexValidator,
-    });
-  }
-
   public(): TFunctionType extends "query"
     ? RegisteredQuery<
         "public",

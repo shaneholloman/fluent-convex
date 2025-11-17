@@ -1,5 +1,7 @@
 import { convexTest } from "convex-test";
 import { expect, test, describe } from "vitest";
+import { v } from "convex/values";
+import { createBuilder } from "fluent-convex";
 import { api, internal } from "./_generated/api";
 import schema from "./schema";
 import { modules } from "./test.setup";
@@ -199,5 +201,63 @@ describe("Return type validation", () => {
     const id = await t.mutation(api.myFunctions.addNumber, { value: 222 });
     expect(typeof id).toBe("string");
     expect(id.length).toBeGreaterThan(0);
+  });
+});
+
+describe("Handler uniqueness enforcement", () => {
+  test("should not have handler method after calling handler()", () => {
+    const testBuilder = createBuilder(schema);
+
+    const builder = testBuilder
+      .query()
+      .input({ id: v.string() })
+      .handler(async () => ({ success: true }));
+
+    // ConvexBuilderWithHandler does not have a handler method
+    // TypeScript prevents calling it at compile time, and runtime confirms it doesn't exist
+    expect((builder as any).handler).toBeUndefined();
+  });
+
+  test("should not have handler method after calling handler() on mutation", () => {
+    const testBuilder = createBuilder(schema);
+
+    const builder = testBuilder
+      .mutation()
+      .input({ name: v.string() })
+      .handler(async () => ({ success: true }));
+
+    // ConvexBuilderWithHandler does not have a handler method
+    expect((builder as any).handler).toBeUndefined();
+  });
+
+  test("should not have handler method after calling handler() on action", () => {
+    const testBuilder = createBuilder(schema);
+
+    const builder = testBuilder
+      .action()
+      .input({ url: v.string() })
+      .handler(async () => ({ success: true }));
+
+    // ConvexBuilderWithHandler does not have a handler method
+    expect((builder as any).handler).toBeUndefined();
+  });
+
+  test("should not have handler method even after middleware is added", () => {
+    const testBuilder = createBuilder(schema);
+
+    const authMiddleware = testBuilder
+      .query()
+      .middleware(async ({ context, next }: any) => {
+        return next({ context });
+      });
+
+    const builder = testBuilder
+      .query()
+      .input({ id: v.string() })
+      .handler(async () => ({ success: true }))
+      .use(authMiddleware);
+
+    // ConvexBuilderWithHandler does not have a handler method
+    expect((builder as any).handler).toBeUndefined();
   });
 });

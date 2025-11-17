@@ -389,14 +389,16 @@ describe("Middleware after handler", () => {
   });
 
   it("should allow middleware after handler for mutations", () => {
-    const middleware = convex.mutation().middleware(async ({ context, next }) => {
-      return next({
-        context: {
-          ...context,
-          requestId: "mut-123",
-        },
+    const middleware = convex
+      .mutation()
+      .middleware(async ({ context, next }) => {
+        return next({
+          context: {
+            ...context,
+            requestId: "mut-123",
+          },
+        });
       });
-    });
 
     convex
       .mutation()

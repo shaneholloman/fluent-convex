@@ -326,10 +326,13 @@ describe("ConvexBuilder Type Tests", () => {
 
   describe("optional input", () => {
     it("should work without input validation", () => {
-      convex.query().handler(async ({ input }) => {
-        assertType<Record<never, never>>(input);
-        return { success: true };
-      }).public();
+      convex
+        .query()
+        .handler(async ({ input }) => {
+          assertType<Record<never, never>>(input);
+          return { success: true };
+        })
+        .public();
     });
 
     it("should infer optional fields as T | undefined", () => {
@@ -649,15 +652,18 @@ describe("ConvexBuilder Type Tests", () => {
   });
 
   describe("order of operations", () => {
-    it("should require .public() or .internal() after .handler()", () => {
-      convex
-        .query()
-        .input({ id: v.string() })
-        .handler(async ({ input }) => {
-          assertType<string>(input.id);
-          return { id: input.id };
-        })
-        .internal();
+    it("should prevent calling .public() before .handler()", () => {
+      const builder = convex.query().input({ id: v.string() });
+
+      // @ts-expect-error - ConvexBuilder does not have a public method. Call .handler() first.
+      builder.public();
+    });
+
+    it("should prevent calling .internal() before .handler()", () => {
+      const builder = convex.mutation().input({ name: v.string() });
+
+      // @ts-expect-error - ConvexBuilder does not have an internal method. Call .handler() first.
+      builder.internal();
     });
 
     it("should allow .public() after .handler()", () => {
@@ -669,6 +675,119 @@ describe("ConvexBuilder Type Tests", () => {
           return { id: input.id };
         })
         .public();
+    });
+
+    it("should allow .internal() after .handler()", () => {
+      convex
+        .query()
+        .input({ id: v.string() })
+        .handler(async ({ input }) => {
+          assertType<string>(input.id);
+          return { id: input.id };
+        })
+        .internal();
+    });
+  });
+
+  describe("handler uniqueness", () => {
+    it("should prevent calling .handler() twice on query", () => {
+      const builder = convex
+        .query()
+        .input({ id: v.string() })
+        .handler(async ({ input }) => {
+          return { id: input.id };
+        });
+
+      // @ts-expect-error - ConvexBuilderWithHandler does not have a handler method
+      builder.handler(async () => ({ error: "should not be called" }));
+    });
+
+    it("should prevent calling .handler() twice on mutation", () => {
+      const builder = convex
+        .mutation()
+        .input({ name: v.string() })
+        .handler(async ({ input }) => {
+          return { name: input.name };
+        });
+
+      // @ts-expect-error - ConvexBuilderWithHandler does not have a handler method
+      builder.handler(async () => ({ error: "should not be called" }));
+    });
+
+    it("should prevent calling .handler() twice on action", () => {
+      const builder = convex
+        .action()
+        .input({ url: v.string() })
+        .handler(async ({ input }) => {
+          return { url: input.url };
+        });
+
+      // @ts-expect-error - ConvexBuilderWithHandler does not have a handler method
+      builder.handler(async () => ({ error: "should not be called" }));
+    });
+
+    it("should prevent calling .handler() twice even with middleware in between", () => {
+      const authMiddleware = convex
+        .query()
+        .middleware(async ({ context, next }) => {
+          return next({ context });
+        });
+
+      const builder = convex
+        .query()
+        .input({ id: v.string() })
+        .handler(async ({ input }) => {
+          return { id: input.id };
+        })
+        .use(authMiddleware);
+
+      // @ts-expect-error - ConvexBuilderWithHandler does not have a handler method
+      builder.handler(async () => ({ error: "should not be called" }));
+    });
+
+    it("should prevent calling .handler() twice even with returns validator", () => {
+      const builder = convex
+        .query()
+        .input({ count: v.number() })
+        .returns(v.object({ numbers: v.array(v.number()) }))
+        .handler(async () => {
+          return { numbers: [1, 2, 3] };
+        });
+
+      // @ts-expect-error - ConvexBuilderWithHandler does not have a handler method
+      builder.handler(async () => ({ numbers: [] }));
+    });
+
+    it("should allow chaining .use() after handler()", () => {
+      const authMiddleware = convex
+        .query()
+        .middleware(async ({ context, next }) => {
+          return next({ context });
+        });
+
+      const builder = convex
+        .query()
+        .input({ id: v.string() })
+        .handler(async ({ input }) => {
+          return { id: input.id };
+        })
+        .use(authMiddleware);
+
+      // Should be able to call .public() or .internal() after .use()
+      assertType<typeof builder>(builder);
+    });
+
+    it("should allow chaining .returns() after handler()", () => {
+      const builder = convex
+        .query()
+        .input({ count: v.number() })
+        .handler(async () => {
+          return { numbers: [1, 2, 3] };
+        })
+        .returns(v.object({ numbers: v.array(v.number()) }));
+
+      // Should be able to call .public() or .internal() after .returns()
+      assertType<typeof builder>(builder);
     });
   });
 });

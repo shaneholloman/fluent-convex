@@ -49,10 +49,7 @@ interface ConvexBuilderDef<
   argsValidator?: TArgsValidator;
   returnsValidator?: TReturnsValidator;
   visibility: TVisibility;
-  handler?: (
-    context: Context,
-    input: any
-  ) => Promise<any>;
+  handler?: (context: Context, input: any) => Promise<any>;
 }
 
 export class ConvexBuilder<
@@ -245,7 +242,6 @@ export class ConvexBuilder<
     });
   }
 
-
   input<UInput extends ValidatorInput>(
     validator: UInput
   ): ConvexBuilder<
@@ -317,7 +313,7 @@ export class ConvexBuilder<
       context: TCurrentContext;
       input: InferredArgs<TArgsValidator>;
     }) => Promise<TReturn>
-  ): ConvexBuilder<
+  ): ConvexBuilderWithHandler<
     TDataModel,
     TFunctionType,
     TInitialContext,
@@ -325,9 +321,14 @@ export class ConvexBuilder<
     TArgsValidator,
     TReturnsValidator,
     TVisibility,
-    true,
     TReturn
   > {
+    if (this.def.handler) {
+      throw new Error(
+        "Handler already defined. Only one handler can be set per function chain."
+      );
+    }
+
     // Store the raw handler function - it will be composed with all middlewares
     // (including those added after .handler()) when .public() or .internal() is called
     // The handler signature matches what Convex expects: (ctx, args) => Promise<return>
@@ -341,7 +342,7 @@ export class ConvexBuilder<
       });
     };
 
-    return new ConvexBuilder<
+    return new ConvexBuilderWithHandler<
       TDataModel,
       TFunctionType,
       TInitialContext,
@@ -349,35 +350,141 @@ export class ConvexBuilder<
       TArgsValidator,
       TReturnsValidator,
       TVisibility,
-      true,
       TReturn
     >({
       ...this.def,
       handler: rawHandler as any,
     });
   }
+}
 
-  public(): THasHandler extends true
-    ? TFunctionType extends "query"
-      ? RegisteredQuery<"public", InferredArgs<TArgsValidator>, Promise<THandlerReturn>>
-      : TFunctionType extends "mutation"
-        ? RegisteredMutation<"public", InferredArgs<TArgsValidator>, Promise<THandlerReturn>>
-        : TFunctionType extends "action"
-          ? RegisteredAction<"public", InferredArgs<TArgsValidator>, Promise<THandlerReturn>>
-          : never
-    : never {
+export class ConvexBuilderWithHandler<
+  TDataModel extends GenericDataModel = GenericDataModel,
+  TFunctionType extends FunctionType | undefined = undefined,
+  TInitialContext extends Context = EmptyObject,
+  TCurrentContext extends Context = EmptyObject,
+  TArgsValidator extends ConvexArgsValidator | undefined = undefined,
+  TReturnsValidator extends ConvexReturnsValidator | undefined = undefined,
+  TVisibility extends Visibility = "public",
+  THandlerReturn = any,
+> {
+  private def: ConvexBuilderDef<
+    TFunctionType,
+    TArgsValidator,
+    TReturnsValidator,
+    TVisibility
+  >;
+
+  constructor(
+    def: ConvexBuilderDef<
+      TFunctionType,
+      TArgsValidator,
+      TReturnsValidator,
+      TVisibility
+    >
+  ) {
+    this.def = def;
+  }
+
+  use<UOutContext extends Context>(
+    middleware: ConvexMiddleware<TCurrentContext, UOutContext>
+  ): ConvexBuilderWithHandler<
+    TDataModel,
+    TFunctionType,
+    TInitialContext,
+    TCurrentContext & UOutContext,
+    TArgsValidator,
+    TReturnsValidator,
+    TVisibility,
+    THandlerReturn
+  > {
+    return new ConvexBuilderWithHandler<
+      TDataModel,
+      TFunctionType,
+      TInitialContext,
+      TCurrentContext & UOutContext,
+      TArgsValidator,
+      TReturnsValidator,
+      TVisibility,
+      THandlerReturn
+    >({
+      ...this.def,
+      middlewares: [...this.def.middlewares, middleware as AnyConvexMiddleware],
+    });
+  }
+
+  returns<UReturns extends ReturnsValidatorInput>(
+    validator: UReturns
+  ): ConvexBuilderWithHandler<
+    TDataModel,
+    TFunctionType,
+    TInitialContext,
+    TCurrentContext,
+    TArgsValidator,
+    ToConvexReturnsValidator<UReturns>,
+    TVisibility,
+    THandlerReturn
+  > {
+    const convexValidator = isZodSchema(validator)
+      ? (toConvexValidator(validator) as ToConvexReturnsValidator<UReturns>)
+      : (validator as ToConvexReturnsValidator<UReturns>);
+
+    return new ConvexBuilderWithHandler<
+      TDataModel,
+      TFunctionType,
+      TInitialContext,
+      TCurrentContext,
+      TArgsValidator,
+      ToConvexReturnsValidator<UReturns>,
+      TVisibility,
+      THandlerReturn
+    >({
+      ...this.def,
+      returnsValidator: convexValidator,
+    });
+  }
+
+  public(): TFunctionType extends "query"
+    ? RegisteredQuery<
+        "public",
+        InferredArgs<TArgsValidator>,
+        Promise<THandlerReturn>
+      >
+    : TFunctionType extends "mutation"
+      ? RegisteredMutation<
+          "public",
+          InferredArgs<TArgsValidator>,
+          Promise<THandlerReturn>
+        >
+      : TFunctionType extends "action"
+        ? RegisteredAction<
+            "public",
+            InferredArgs<TArgsValidator>,
+            Promise<THandlerReturn>
+          >
+        : never {
     return this._register("public") as any;
   }
 
-  internal(): THasHandler extends true
-    ? TFunctionType extends "query"
-      ? RegisteredQuery<"internal", InferredArgs<TArgsValidator>, Promise<THandlerReturn>>
-      : TFunctionType extends "mutation"
-        ? RegisteredMutation<"internal", InferredArgs<TArgsValidator>, Promise<THandlerReturn>>
-        : TFunctionType extends "action"
-          ? RegisteredAction<"internal", InferredArgs<TArgsValidator>, Promise<THandlerReturn>>
-          : never
-    : never {
+  internal(): TFunctionType extends "query"
+    ? RegisteredQuery<
+        "internal",
+        InferredArgs<TArgsValidator>,
+        Promise<THandlerReturn>
+      >
+    : TFunctionType extends "mutation"
+      ? RegisteredMutation<
+          "internal",
+          InferredArgs<TArgsValidator>,
+          Promise<THandlerReturn>
+        >
+      : TFunctionType extends "action"
+        ? RegisteredAction<
+            "internal",
+            InferredArgs<TArgsValidator>,
+            Promise<THandlerReturn>
+          >
+        : never {
     return this._register("internal") as any;
   }
 

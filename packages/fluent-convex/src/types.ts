@@ -49,6 +49,8 @@ type RequiredArgs<T extends Record<PropertyKey, any>> = {
 export type InferArgs<T extends ConvexArgsValidator> =
   T extends GenericValidator ? T["type"] : RequiredArgs<T> & OptionalArgs<T>;
 
+export type InferReturns<T extends ConvexReturnsValidator> = ValidatorType<T>;
+
 export type Promisable<T> = T | PromiseLike<T>;
 
 export type QueryCtx<DataModel extends GenericDataModel = GenericDataModel> =

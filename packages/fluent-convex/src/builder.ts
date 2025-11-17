@@ -18,6 +18,7 @@ import type {
   ConvexArgsValidator,
   ConvexReturnsValidator,
   InferArgs,
+  InferReturns,
   FunctionType,
   Visibility,
   QueryCtx,
@@ -36,6 +37,12 @@ import {
 
 type InferredArgs<T extends ConvexArgsValidator | undefined> =
   T extends ConvexArgsValidator ? InferArgs<T> : EmptyObject;
+
+type ExpectedReturnType<
+  TReturnsValidator extends ConvexReturnsValidator | undefined,
+> = TReturnsValidator extends ConvexReturnsValidator
+  ? InferReturns<TReturnsValidator>
+  : any;
 
 interface ConvexBuilderDef<
   TFunctionType extends FunctionType | undefined,
@@ -304,7 +311,10 @@ export class ConvexBuilderWithFunctionKind<
     });
   }
 
-  handler<TReturn>(
+  handler<
+    TReturn extends
+      ExpectedReturnType<TReturnsValidator> = ExpectedReturnType<TReturnsValidator>,
+  >(
     handlerFn: (options: {
       context: TCurrentContext;
       input: InferredArgs<TArgsValidator>;

@@ -28,7 +28,7 @@ export const listNumbersSimple = convex
 export const listNumbersSimpleWithConvexValidators = convex
   .query()
   .input(v.object({ count: v.number() }))
-  .returns(v.object({ numbedrs: v.array(v.number()) }))
+  .returns(v.object({ numbers: v.array(v.number()) }))
   .handler(async ({ context, input }) => {
     const numbers = await context.db
       .query("numbers")
@@ -91,7 +91,7 @@ export const addNumberAuth = convex
 export const addNumber = convex
   .mutation()
   .input({ value: v.number() })
-  .returns(v.id("string"))
+  .returns(v.id("numbers"))
   .handler(async ({ context, input }) => {
     return await context.db.insert("numbers", { value: input.value });
   })

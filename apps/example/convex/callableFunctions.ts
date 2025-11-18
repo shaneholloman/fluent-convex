@@ -47,9 +47,7 @@ export const getNumbersWithStats = convex
   })
   .public();
 
-export const getNumbersWithStatsFromModel = fromModel(
-  MyQueryModel,
-  "listNumbers",
-)
+export const listNumbersFromModel = convex
+  .fromModel(MyQueryModel, "listNumbers")
   .use(addTimestamp)
   .public();

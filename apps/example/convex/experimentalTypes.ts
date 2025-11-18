@@ -1,4 +1,3 @@
-import { expectTypeOf } from "vitest";
 import type {
   FunctionReference,
   FilterApi,
@@ -14,6 +13,10 @@ type TContext = GenericQueryCtx<any>;
 type TestQuery = RegisteredQuery<"public", TArgs, Promise<THandlerReturn>> &
   ((context: TContext) => (args: TArgs) => Promise<THandlerReturn>);
 
+// Making sure the query is callable
+const myQuery: TestQuery = null as any;
+myQuery({} as any)({ count: 1 });
+
 type TestApi = {
   myFunction: TestQuery;
 };
@@ -21,9 +24,5 @@ type TestApi = {
 // Filter for internal functions
 type Filtered = FilterApi<TestApi, FunctionReference<any, "public">>;
 
-// this should not error
-type XX = Filtered["myFunction"]
-
-// Another test for the same
-type HasFunction = "myFunction" extends keyof Filtered ? true : false;
-expectTypeOf<HasFunction>().toEqualTypeOf<true>();
+// Making sure that the MyFunctionExists
+type MyFunctionShouldExist = Filtered["myFunction"];

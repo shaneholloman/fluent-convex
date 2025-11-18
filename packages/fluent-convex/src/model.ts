@@ -1,4 +1,8 @@
-import type { GenericDataModel, GenericQueryCtx } from "convex/server";
+import type {
+  GenericDataModel,
+  GenericQueryCtx,
+  RegisteredQuery,
+} from "convex/server";
 import { queryGeneric, internalQueryGeneric } from "convex/server";
 import { getMethodMetadataFromClass } from "./decorators";
 import type { QueryCtx } from "./types";
@@ -49,15 +53,23 @@ class ModelMethodBuilder<
   /**
    * Register as public function
    */
-  public() {
-    return this._register("public");
+  public(): RegisteredQuery<"public", any, Promise<any>> {
+    return this._register("public") as RegisteredQuery<
+      "public",
+      any,
+      Promise<any>
+    >;
   }
 
   /**
    * Register as internal function
    */
-  internal() {
-    return this._register("internal");
+  internal(): RegisteredQuery<"internal", any, Promise<any>> {
+    return this._register("internal") as RegisteredQuery<
+      "internal",
+      any,
+      Promise<any>
+    >;
   }
 
   private _register(visibility: "public" | "internal") {

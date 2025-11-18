@@ -424,10 +424,7 @@ export class ConvexBuilderWithHandler<
         "public",
         InferredArgs<TArgsValidator>,
         Promise<THandlerReturn>
-      > &
-        ((
-          context: TCurrentContext
-        ) => (args: InferredArgs<TArgsValidator>) => Promise<THandlerReturn>)
+      >
     : TFunctionType extends "mutation"
       ? RegisteredMutation<
           "public",

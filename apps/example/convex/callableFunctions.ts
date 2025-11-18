@@ -21,12 +21,14 @@ export const listNumbersSimple = convex
   .use(addValueMiddleware(42))
   .public();
 
-export const doSomethingWithNumbers = convex
-  .query()
-  .input({ count: v.number() })
-  .handler(async ({ context, input }) => {
-    const { numbers } = await listNumbersSimple(context)(input);
-
-    return numbers.map((n) => String(n)).join(", ");
-  })
-  .public();
+// This demonstrates the desired callable function feature
+// Currently commented out because the builder doesn't support it yet
+// export const doSomethingWithNumbers = convex
+//   .query()
+//   .input({ count: v.number() })
+//   .handler(async ({ context, input }) => {
+//     const { numbers } = await listNumbersSimple(context)(input);
+//
+//     return numbers.map((n) => String(n)).join(", ");
+//   })
+//   .public();

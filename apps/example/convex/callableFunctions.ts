@@ -55,4 +55,4 @@ export const getNumbersWithStats = convex
 
 export const listNumbersFromModel = toFluent(MyQueryModel, "listNumbers")
   .use(addTimestamp)
-  .public(convex);
+  .public();

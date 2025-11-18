@@ -1,8 +1,8 @@
 import type { GenericDataModel, GenericQueryCtx } from "convex/server";
-import type { ConvexBuilder } from "./builder";
-import { ConvexBuilderWithHandler } from "./builder";
+import { queryGeneric, internalQueryGeneric } from "convex/server";
 import { getMethodMetadataFromClass } from "./decorators";
 import type { QueryCtx } from "./types";
+import type { AnyConvexMiddleware } from "./middleware";
 
 /**
  * Base class for query models that can be used with fluent-convex
@@ -24,72 +24,14 @@ type ExtractDataModelFromConstructor<T> = T extends new (
   : never;
 
 /**
- * Internal helper to create a builder from a model method
- * This extracts the logic that was previously in ConvexBuilder.fromModel
- */
-function createBuilderFromModel<
-  TDataModel extends GenericDataModel,
-  TModel extends new (context: QueryCtx<TDataModel>) => any,
-  TMethodName extends keyof InstanceType<TModel>,
->(
-  ModelClass: TModel,
-  methodName: TMethodName,
-  _builder: ConvexBuilder<TDataModel>
-): ConvexBuilderWithHandler<
-  TDataModel,
-  "query",
-  QueryCtx<TDataModel>,
-  QueryCtx<TDataModel>,
-  any,
-  any,
-  "public",
-  any
-> {
-  // Get metadata from the decorated method
-  const metadata = getMethodMetadataFromClass(ModelClass, methodName as string);
-
-  // Set default handler that instantiates the model and calls the method
-  const defaultHandler = async (context: QueryCtx<TDataModel>, input: any) => {
-    const model = new ModelClass(context);
-    const method = (model as any)[methodName];
-    if (typeof method !== "function") {
-      throw new Error(
-        `Method '${String(methodName)}' is not a function on ${ModelClass.name}`
-      );
-    }
-    return await method.call(model, input);
-  };
-
-  // Return a builder that already has a handler set
-  // This matches the original fromModel implementation
-  return new ConvexBuilderWithHandler<
-    TDataModel,
-    "query",
-    QueryCtx<TDataModel>,
-    QueryCtx<TDataModel>,
-    typeof metadata.inputValidator,
-    typeof metadata.returnsValidator,
-    "public",
-    any
-  >({
-    functionType: "query",
-    middlewares: [],
-    argsValidator: metadata.inputValidator,
-    returnsValidator: metadata.returnsValidator,
-    visibility: "public",
-    handler: defaultHandler as any,
-  }) as any;
-}
-
-/**
- * Builder for model methods that can be bound to a ConvexBuilder instance
+ * Builder for model methods
  */
 class ModelMethodBuilder<
   TDataModel extends GenericDataModel,
   TModel extends new (context: QueryCtx<TDataModel>) => any,
   TMethodName extends keyof InstanceType<TModel>,
 > {
-  private middlewares: any[] = [];
+  private middlewares: AnyConvexMiddleware[] = [];
 
   constructor(
     private ModelClass: TModel,
@@ -99,47 +41,70 @@ class ModelMethodBuilder<
   /**
    * Use middleware - stores middleware for later application
    */
-  use(middleware: any): this {
+  use(middleware: AnyConvexMiddleware): this {
     this.middlewares.push(middleware);
     return this;
   }
 
   /**
    * Register as public function
-   * Builder must be provided here
    */
-  public(builder: ConvexBuilder<TDataModel>) {
-    // Create builder from model using the extracted helper
-    const result = createBuilderFromModel(
-      this.ModelClass,
-      this.methodName,
-      builder
-    );
-    // Apply all middlewares
-    let current: any = result;
-    for (const middleware of this.middlewares) {
-      current = current.use(middleware);
-    }
-    return current.public();
+  public() {
+    return this._register("public");
   }
 
   /**
    * Register as internal function
-   * Builder must be provided here
    */
-  internal(builder: ConvexBuilder<TDataModel>) {
-    // Create builder from model using the extracted helper
-    const result = createBuilderFromModel(
+  internal() {
+    return this._register("internal");
+  }
+
+  private _register(visibility: "public" | "internal") {
+    // Get metadata from the decorated method
+    const metadata = getMethodMetadataFromClass(
       this.ModelClass,
-      this.methodName,
-      builder
+      this.methodName as string
     );
-    // Apply all middlewares
-    let current: any = result;
-    for (const middleware of this.middlewares) {
-      current = current.use(middleware);
-    }
-    return current.internal();
+
+    // Create handler that applies middlewares and calls the model method
+    const composedHandler = async (
+      baseCtx: QueryCtx<TDataModel>,
+      baseArgs: any
+    ) => {
+      let currentContext: any = baseCtx;
+
+      // Apply all middlewares in order
+      for (const middleware of this.middlewares) {
+        const result = await middleware({
+          context: currentContext,
+          next: async (options) => ({ context: options.context }),
+        });
+        currentContext = result.context;
+      }
+
+      // Instantiate model and call method
+      const model = new this.ModelClass(currentContext);
+      const method = (model as any)[this.methodName];
+      if (typeof method !== "function") {
+        throw new Error(
+          `Method '${String(this.methodName)}' is not a function on ${this.ModelClass.name}`
+        );
+      }
+      return await method.call(model, baseArgs);
+    };
+
+    const config = {
+      args: metadata.inputValidator || {},
+      ...(metadata.returnsValidator
+        ? { returns: metadata.returnsValidator }
+        : {}),
+      handler: composedHandler,
+    };
+
+    const registrationFn =
+      visibility === "public" ? queryGeneric : internalQueryGeneric;
+    return registrationFn(config);
   }
 }
 
@@ -147,7 +112,7 @@ class ModelMethodBuilder<
  * Create a fluent builder from a decorated model method
  * Infers DataModel from the QueryModel class
  * Usage:
- *   toFluent(MyQueryModel, "listNumbers").use(middleware).public(convex)
+ *   toFluent(MyQueryModel, "listNumbers").use(middleware).public()
  */
 export function toFluent<
   TModel extends new (context: GenericQueryCtx<any>) => any,

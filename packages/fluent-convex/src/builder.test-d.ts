@@ -1375,7 +1375,7 @@ describe("ConvexBuilder Type Tests", () => {
     }
 
     it("should create a query from a decorated model method", () => {
-      const query = toFluent(TestQueryModel, "listNumbers").public(convex);
+      const query = toFluent(TestQueryModel, "listNumbers").public();
 
       assertType<
         RegisteredQuery<"public", { count: number }, Promise<number[]>>
@@ -1385,7 +1385,7 @@ describe("ConvexBuilder Type Tests", () => {
     it("should infer input type from @input decorator", () => {
       // The handler is set by default, so we can't test input inference this way
       // But the type should be inferred correctly
-      const query = toFluent(TestQueryModel, "listNumbers").public(convex);
+      const query = toFluent(TestQueryModel, "listNumbers").public();
 
       assertType<
         RegisteredQuery<"public", { count: number }, Promise<number[]>>
@@ -1393,7 +1393,7 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("should infer return type from @returns decorator", () => {
-      const query = toFluent(TestQueryModel, "listNumbers").public(convex);
+      const query = toFluent(TestQueryModel, "listNumbers").public();
 
       assertType<
         RegisteredQuery<"public", { count: number }, Promise<number[]>>
@@ -1414,7 +1414,7 @@ describe("ConvexBuilder Type Tests", () => {
 
       const query = toFluent(TestQueryModel, "listNumbers")
         .use(authMiddleware)
-        .public(convex);
+        .public();
 
       assertType<
         RegisteredQuery<"public", { count: number }, Promise<number[]>>
@@ -1422,7 +1422,7 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("should work with methods that have complex return types", () => {
-      const query = toFluent(TestQueryModel, "getNumber").public(convex);
+      const query = toFluent(TestQueryModel, "getNumber").public();
 
       assertType<
         RegisteredQuery<
@@ -1434,7 +1434,7 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("should allow .internal() visibility", () => {
-      const query = toFluent(TestQueryModel, "listNumbers").internal(convex);
+      const query = toFluent(TestQueryModel, "listNumbers").internal();
 
       assertType<
         RegisteredQuery<"internal", { count: number }, Promise<number[]>>
@@ -1442,7 +1442,7 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("should allow calling .public() directly (handler is set by default)", () => {
-      const query = toFluent(TestQueryModel, "listNumbers").public(convex);
+      const query = toFluent(TestQueryModel, "listNumbers").public();
 
       assertType<
         RegisteredQuery<"public", { count: number }, Promise<number[]>>
@@ -1459,7 +1459,7 @@ describe("ConvexBuilder Type Tests", () => {
         }
       }
 
-      const query = toFluent(ModelWithoutReturns, "getName").public(convex);
+      const query = toFluent(ModelWithoutReturns, "getName").public();
 
       assertType<RegisteredQuery<"public", { name: string }, Promise<any>>>(
         query
@@ -1475,7 +1475,7 @@ describe("ConvexBuilder Type Tests", () => {
         }
       }
 
-      const query = toFluent(ModelWithoutInput, "getDefault").public(convex);
+      const query = toFluent(ModelWithoutInput, "getDefault").public();
 
       assertType<RegisteredQuery<"public", Record<never, never>, Promise<any>>>(
         query

@@ -118,6 +118,17 @@ export function getMetadata(
 }
 
 /**
+ * Get metadata for a method from a class constructor
+ * This is the public API for accessing decorator metadata
+ */
+export function getMethodMetadataFromClass<T extends new (...args: any[]) => any>(
+  ModelClass: T,
+  methodName: string | symbol,
+): CallableMethodMetadata {
+  return getMethodMetadata(ModelClass.prototype, methodName);
+}
+
+/**
  * Create a proxy that automatically makes all decorated methods callable
  * Usage: const callableModel = makeCallableMethods(new MyQueryModel(context));
  * Then: await callableModel.listNumbers({ count: 10 });

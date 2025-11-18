@@ -1,8 +1,15 @@
 import { describe, it, assertType } from "vitest";
 import { v } from "convex/values";
 import { z } from "zod";
-import { defineSchema, defineTable } from "convex/server";
+import {
+  defineSchema,
+  defineTable,
+  type RegisteredQuery,
+  type RegisteredMutation,
+} from "convex/server";
 import { createBuilder } from "./builder";
+import { input, returns } from "./decorators";
+import type { QueryCtx, MutationCtx } from "./types";
 
 const schema = defineSchema({
   numbers: defineTable({
@@ -1334,6 +1341,145 @@ describe("ConvexBuilder Type Tests", () => {
       // After .internal(), should NOT be callable
       // @ts-expect-error - RegisteredMutation is not callable
       registeredMutation({} as any);
+    });
+  });
+
+  describe("fromModel functionality", () => {
+    // Test model class with decorated methods
+    class TestQueryModel {
+      constructor(private context: QueryCtx<any>) {}
+
+      @input({ count: v.number() })
+      @returns(v.array(v.number()))
+      async listNumbers({ count }: { count: number }) {
+        return [1, 2, 3].slice(0, count);
+      }
+
+      @input({ id: v.id("numbers") })
+      @returns(v.object({ id: v.id("numbers"), value: v.number() }))
+      async getNumber({ id }: { id: any }) {
+        const doc = await this.context.db.get(id);
+        if (!doc) return { id, value: 0 };
+        return { id: doc._id, value: doc.value };
+      }
+    }
+
+    class TestMutationModel {
+      constructor(private context: MutationCtx<any>) {}
+
+      @input({ value: v.number() })
+      async addNumber({ value }: { value: number }) {
+        return await this.context.db.insert("numbers", { value });
+      }
+    }
+
+    it("should create a query from a decorated model method", () => {
+      const query = convex.fromModel(TestQueryModel, "listNumbers").public();
+
+      assertType<
+        RegisteredQuery<"public", { count: number }, Promise<number[]>>
+      >(query);
+    });
+
+    it("should infer input type from @input decorator", () => {
+      // The handler is set by default, so we can't test input inference this way
+      // But the type should be inferred correctly
+      const query = convex.fromModel(TestQueryModel, "listNumbers").public();
+
+      assertType<
+        RegisteredQuery<"public", { count: number }, Promise<number[]>>
+      >(query);
+    });
+
+    it("should infer return type from @returns decorator", () => {
+      const query = convex.fromModel(TestQueryModel, "listNumbers").public();
+
+      assertType<
+        RegisteredQuery<"public", { count: number }, Promise<number[]>>
+      >(query);
+    });
+
+    it("should allow chaining with .use() middleware", () => {
+      const authMiddleware = convex
+        .query()
+        .middleware(async ({ context, next }) => {
+          return next({
+            context: {
+              ...context,
+              userId: "user-123",
+            },
+          });
+        });
+
+      const query = convex
+        .fromModel(TestQueryModel, "listNumbers")
+        .use(authMiddleware)
+        .public();
+
+      assertType<
+        RegisteredQuery<"public", { count: number }, Promise<number[]>>
+      >(query);
+    });
+
+    it("should work with methods that have complex return types", () => {
+      const query = convex.fromModel(TestQueryModel, "getNumber").public();
+
+      assertType<
+        RegisteredQuery<
+          "public",
+          { id: any },
+          Promise<{ id: any; value: number }>
+        >
+      >(query);
+    });
+
+    it("should allow .internal() visibility", () => {
+      const query = convex.fromModel(TestQueryModel, "listNumbers").internal();
+
+      assertType<
+        RegisteredQuery<"internal", { count: number }, Promise<number[]>>
+      >(query);
+    });
+
+    it("should allow calling .public() directly (handler is set by default)", () => {
+      const query = convex.fromModel(TestQueryModel, "listNumbers").public();
+
+      assertType<
+        RegisteredQuery<"public", { count: number }, Promise<number[]>>
+      >(query);
+    });
+
+    it("should work without @returns decorator", () => {
+      class ModelWithoutReturns {
+        constructor(private context: QueryCtx<any>) {}
+
+        @input({ name: v.string() })
+        async getName({ name }: { name: string }) {
+          return { name };
+        }
+      }
+
+      const query = convex.fromModel(ModelWithoutReturns, "getName").public();
+
+      assertType<RegisteredQuery<"public", { name: string }, Promise<any>>>(
+        query
+      );
+    });
+
+    it("should work without @input decorator", () => {
+      class ModelWithoutInput {
+        constructor(private context: QueryCtx<any>) {}
+
+        async getDefault() {
+          return { success: true };
+        }
+      }
+
+      const query = convex.fromModel(ModelWithoutInput, "getDefault").public();
+
+      assertType<RegisteredQuery<"public", Record<never, never>, Promise<any>>>(
+        query
+      );
     });
   });
 });

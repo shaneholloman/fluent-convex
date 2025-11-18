@@ -29,6 +29,7 @@ export {
   input,
   returns,
   getMetadata,
+  getMethodMetadataFromClass,
   makeCallableMethods,
   makeCallable,
 } from "./decorators";

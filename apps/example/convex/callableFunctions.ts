@@ -3,10 +3,14 @@ import { convex } from "./lib";
 import { addTimestamp, addValueMiddleware } from "./middleware";
 import { QueryCtx } from "./_generated/server";
 import { input, returns, makeCallableMethods } from "fluent-convex";
+import { GenericQueryCtx } from "convex/server";
+import { DataModel } from "./_generated/dataModel.js";
 
-class MyQueryModel {
-  constructor(private context: QueryCtx) {}
+abstract class MyQueryModelBase<TDataModel extends DataModel> {
+  constructor(protected context: GenericQueryCtx<TDataModel>) {}
+}
 
+class MyQueryModel extends MyQueryModelBase<DataModel> {
   @input({ count: v.number() })
   @returns(v.array(v.number()))
   async listNumbers({ count }: { count: number }) {
@@ -47,7 +51,6 @@ export const getNumbersWithStats = convex
   })
   .public();
 
-export const listNumbersFromModel = convex
-  .fromModel(MyQueryModel, "listNumbers")
+export const listNumbersFromModel = MyQueryModel.toFluent("listNumbers")
   .use(addTimestamp)
   .public();

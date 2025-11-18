@@ -8,7 +8,6 @@
  * @module
  */
 
-import type * as callableFunctions from "../callableFunctions.js";
 import type * as lib from "../lib.js";
 import type * as middleware from "../middleware.js";
 import type * as myFunctions from "../myFunctions.js";
@@ -20,7 +19,6 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
-  callableFunctions: typeof callableFunctions;
   lib: typeof lib;
   middleware: typeof middleware;
   myFunctions: typeof myFunctions;

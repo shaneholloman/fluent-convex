@@ -8,7 +8,7 @@ import {
   type RegisteredMutation,
 } from "convex/server";
 import { createBuilder } from "./builder";
-import { toFluent } from "./model";
+import { toFluent } from "@fluent-convex/experimental-models";
 import { input, returns } from "./decorators";
 import type { QueryCtx, MutationCtx } from "./types";
 

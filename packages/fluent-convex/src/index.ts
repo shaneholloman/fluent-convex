@@ -1,5 +1,4 @@
 export { ConvexBuilder, createBuilder } from "./builder";
-export { QueryModel, toFluent } from "./model";
 
 export type {
   ConvexMiddleware,

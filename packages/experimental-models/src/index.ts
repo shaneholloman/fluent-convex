@@ -4,9 +4,9 @@ import type {
   RegisteredQuery,
 } from "convex/server";
 import { queryGeneric, internalQueryGeneric } from "convex/server";
-import { getMethodMetadataFromClass } from "./decorators";
-import type { QueryCtx } from "./types";
-import type { AnyConvexMiddleware } from "./middleware";
+import { getMethodMetadataFromClass } from "fluent-convex";
+import type { QueryCtx } from "fluent-convex";
+import type { AnyConvexMiddleware } from "fluent-convex";
 
 /**
  * Base class for query models that can be used with fluent-convex
@@ -143,3 +143,4 @@ export function toFluent<
     TMethodName
   >(ModelClass, methodName);
 }
+

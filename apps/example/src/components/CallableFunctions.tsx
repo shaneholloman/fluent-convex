@@ -13,6 +13,7 @@ export const CallableFunctions = () => {
     count,
   });
 
+
   const handleFetch = () => {
     const num = parseInt(inputCount, 10);
     if (!isNaN(num) && num > 0) {
@@ -46,7 +47,9 @@ export const CallableFunctions = () => {
         ) : (
           <div className="flex flex-col gap-4">
             <div>
-              <p className="font-semibold mb-2">Numbers ({result.numbers.length}):</p>
+              <p className="font-semibold mb-2">
+                Numbers ({result.numbers.length}):
+              </p>
               {result.numbers.length === 0 ? (
                 <p className="text-slate-500 italic">
                   No numbers found. Add some numbers first!
@@ -82,4 +85,3 @@ export const CallableFunctions = () => {
     </Card>
   );
 };
-

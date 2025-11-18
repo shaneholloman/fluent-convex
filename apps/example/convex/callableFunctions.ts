@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { convex } from "./lib";
-import { addTimestamp, addValueMiddleware } from "./middleware";
+import { addTimestamp, addValueMiddleware, authMiddleware } from "./middleware";
 import { QueryCtx } from "./_generated/server";
 import { input, returns, makeCallableMethods } from "fluent-convex";
 import { GenericQueryCtx } from "convex/server";
@@ -51,6 +51,12 @@ export const getNumbersWithStats = convex
   })
   .public();
 
-export const listNumbersFromModel = MyQueryModel.toFluent("listNumbers")
+export const listNumbersFromModel = convex
+  .fromModel(MyQueryModel, "listNumbers")
   .use(addTimestamp)
+  .public();
+
+export const listNumbersFromModelProtected = convex
+  .fromModel(MyQueryModel, "listNumbers")
+  .use(authMiddleware)
   .public();

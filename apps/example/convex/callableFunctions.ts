@@ -6,11 +6,11 @@ import { input, returns, makeCallableMethods } from "fluent-convex";
 import { GenericQueryCtx } from "convex/server";
 import { DataModel } from "./_generated/dataModel.js";
 
-abstract class MyQueryModelBase<TDataModel extends DataModel> {
+abstract class QueryModel<TDataModel extends DataModel> {
   constructor(protected context: GenericQueryCtx<TDataModel>) {}
 }
 
-class MyQueryModel extends MyQueryModelBase<DataModel> {
+class MyQueryModel extends QueryModel<DataModel> {
   @input({ count: v.number() })
   @returns(v.array(v.number()))
   async listNumbers({ count }: { count: number }) {

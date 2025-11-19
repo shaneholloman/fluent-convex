@@ -25,9 +25,9 @@ npm install fluent-convex convex zod
 ```ts
 import { createBuilder } from "fluent-convex";
 import { v } from "convex/values";
-import schema from "./schema";
+import type { DataModel } from "./_generated/dataModel";
 
-const convex = createBuilder(schema);
+const convex = createBuilder<DataModel>();
 
 // Simple query
 export const listNumbers = convex
@@ -84,9 +84,9 @@ export const listNumbersAuth = convex
 ```ts
 import { z } from "zod";
 import { createBuilder } from "fluent-convex";
-import schema from "./schema";
+import type { DataModel } from "./_generated/dataModel";
 
-const convex = createBuilder(schema);
+const convex = createBuilder<DataModel>();
 
 export const listNumbersWithZod = convex
   .query()

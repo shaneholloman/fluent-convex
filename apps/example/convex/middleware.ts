@@ -6,40 +6,34 @@ import type { Auth } from "convex/server";
 export const authMiddleware = convex
   // Define a minimal context type that all Convex contexts have
   .$context<{ auth: Auth }>()
-  .middleware(async ({ context, next }) => {
+  .middleware(async (context, next) => {
     const identity = await context.auth.getUserIdentity();
     if (!identity) {
       throw new Error("Unauthorized");
     }
 
     return next({
-      context: {
-        ...context,
-        user: {
-          id: identity.subject,
-          name: identity.name ?? "Unknown",
-        },
+      ...context,
+      user: {
+        id: identity.subject,
+        name: identity.name ?? "Unknown",
       },
     });
   });
 
 // A generic middleware that adds a timestamp
 // Works with queries, mutations, and actions
-export const addTimestamp = convex.middleware(async ({ context, next }) => {
+export const addTimestamp = convex.middleware(async (context, next) => {
   return next({
-    context: {
-      ...context,
-      timestamp: Date.now(),
-    },
+    ...context,
+    timestamp: Date.now(),
   });
 });
 
 export const addValueMiddleware = <TValue>(value: TValue) =>
-  convex.middleware(async ({ context, next }) => {
+  convex.middleware(async (context, next) => {
     return next({
-      context: {
-        ...context,
-        value,
-      },
+      ...context,
+      value,
     });
   });

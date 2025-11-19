@@ -11,7 +11,7 @@ describe("Schema-aware type tests", () => {
     convex
       .query()
       .input({ count: v.number() })
-      .handler(async ({ context, input }) => {
+      .handler(async (context, input) => {
         const numbers = await context.db
           .query("numbers")
           .order("desc")
@@ -34,7 +34,7 @@ describe("Schema-aware type tests", () => {
     convex
       .query()
       .input({ count: v.number() })
-      .handler(async ({ context, input }) => {
+      .handler(async (context, input) => {
         const numbers = await context.db
           .query("numbers")
           .order("desc")
@@ -56,7 +56,7 @@ describe("Schema-aware type tests", () => {
   it("should have proper table names", () => {
     convex
       .query()
-      .handler(async ({ context }) => {
+      .handler(async (context) => {
         // Should only accept valid table names from the schema
         const numbersQuery = context.db.query("numbers");
 
@@ -70,7 +70,7 @@ describe("Schema-aware type tests", () => {
     convex
       .mutation()
       .input({ value: v.number() })
-      .handler(async ({ context, input }) => {
+      .handler(async (context, input) => {
         // Should be able to insert with proper schema
         const id = await context.db.insert("numbers", { value: input.value });
 
@@ -96,7 +96,7 @@ describe("Input type inference", () => {
         name: v.string(),
         optional: v.optional(v.boolean()),
       })
-      .handler(async ({ input }) => {
+      .handler(async (context, input) => {
         expectTypeOf(input.count).toEqualTypeOf<number>();
         expectTypeOf(input.name).toEqualTypeOf<string>();
         expectTypeOf(input.optional).toEqualTypeOf<boolean | undefined>();
@@ -113,7 +113,7 @@ describe("Input type inference", () => {
           tags: v.array(v.string()),
         }),
       )
-      .handler(async ({ input }) => {
+      .handler(async (context, input) => {
         expectTypeOf(input.count).toEqualTypeOf<number>();
         expectTypeOf(input.tags).toEqualTypeOf<string[]>();
       })
@@ -130,7 +130,7 @@ describe("Input type inference", () => {
           tags: z.array(z.string()),
         }),
       )
-      .handler(async ({ input }) => {
+      .handler(async (context, input) => {
         expectTypeOf(input.count).toEqualTypeOf<number>();
         expectTypeOf(input.email).toEqualTypeOf<string>();
         expectTypeOf(input.tags).toEqualTypeOf<string[]>();
@@ -147,7 +147,7 @@ describe("Input type inference", () => {
           optional: z.string().optional(),
         }),
       )
-      .handler(async ({ input }) => {
+      .handler(async (context, input) => {
         expectTypeOf(input.required).toEqualTypeOf<number>();
         expectTypeOf(input.optional).toEqualTypeOf<string | undefined>();
       })
@@ -158,7 +158,7 @@ describe("Input type inference", () => {
     convex
       .query()
       .input(z.object({ count: z.number() }).refine((data) => data.count > 0))
-      .handler(async ({ input }) => {
+      .handler(async (context, input) => {
         expectTypeOf(input.count).toEqualTypeOf<number>();
       })
       .public();
@@ -170,7 +170,7 @@ describe("Return type inference", () => {
     convex
       .query()
       .input({ count: v.number() })
-      .handler(async ({ input }) => {
+      .handler(async (context, input) => {
         const result = { result: input.count * 2 };
         expectTypeOf(result).toEqualTypeOf<{ result: number }>();
         return result;
@@ -188,7 +188,7 @@ describe("Return type inference", () => {
           total: v.number(),
         }),
       )
-      .handler(async ({ input }) => {
+      .handler(async (context, input) => {
         return {
           numbers: [1, 2, 3],
           total: input.count,
@@ -221,7 +221,7 @@ describe("Return type inference", () => {
       .query()
       .input({ value: v.number() })
       .returns(z.number())
-      .handler(async ({ input }) => {
+      .handler(async (context, input) => {
         return input.value * 2;
       })
       .public();
@@ -232,12 +232,10 @@ describe("Middleware context transformation", () => {
   it("should extend context with middleware", () => {
     const authMiddleware = convex
       .query()
-      .middleware(async ({ context, next }) => {
+      .middleware(async (context, next) => {
         return next({
-          context: {
-            ...context,
-            user: { id: "123", name: "Test User" },
-          },
+          ...context,
+          user: { id: "123", name: "Test User" },
         });
       });
 
@@ -245,7 +243,7 @@ describe("Middleware context transformation", () => {
       .query()
       .use(authMiddleware)
       .input({ count: v.number() })
-      .handler(async ({ context, input }) => {
+      .handler(async (context, input) => {
         // user should be available from middleware
         expectTypeOf(context.user.id).toEqualTypeOf<string>();
         expectTypeOf(context.user.name).toEqualTypeOf<string>();
@@ -259,23 +257,19 @@ describe("Middleware context transformation", () => {
   it("should compose multiple middleware", () => {
     const authMiddleware = convex
       .query()
-      .middleware(async ({ context, next }) => {
+      .middleware(async (context, next) => {
         return next({
-          context: {
-            ...context,
-            userId: "user123" as const,
-          },
+          ...context,
+          userId: "user123" as const,
         });
       });
 
     const timestampMiddleware = convex
       .query()
-      .middleware(async ({ context, next }) => {
+      .middleware(async (context, next) => {
         return next({
-          context: {
-            ...context,
-            timestamp: 123456789,
-          },
+          ...context,
+          timestamp: 123456789,
         });
       });
 
@@ -284,7 +278,7 @@ describe("Middleware context transformation", () => {
       .use(authMiddleware)
       .use(timestampMiddleware)
       .input({ count: v.number() })
-      .handler(async ({ context }) => {
+      .handler(async (context) => {
         expectTypeOf(context.userId).toEqualTypeOf<"user123">();
         expectTypeOf(context.timestamp).toEqualTypeOf<number>();
         expectTypeOf(context.db).not.toBeAny();
@@ -298,7 +292,7 @@ describe("Visibility and function types", () => {
     const internalQuery = convex
       .query()
       .input({ count: v.number() })
-      .handler(async ({ input }) => {
+      .handler(async (context, input) => {
         return { count: input.count };
       })
       .internal();
@@ -312,7 +306,7 @@ describe("Visibility and function types", () => {
       .mutation()
       .input({ value: v.number() })
       .returns(v.id("numbers"))
-      .handler(async ({ context, input }) => {
+      .handler(async (context, input) => {
         const id = await context.db.insert("numbers", { value: input.value });
         expectTypeOf(id).toMatchTypeOf<Id<"numbers">>();
         return id;
@@ -324,7 +318,7 @@ describe("Visibility and function types", () => {
     convex
       .action()
       .input({ url: v.string() })
-      .handler(async ({ input }) => {
+      .handler(async (context, input) => {
         const result = { fetched: input.url };
         expectTypeOf(result).toEqualTypeOf<{ fetched: string }>();
         return result;
@@ -335,19 +329,17 @@ describe("Visibility and function types", () => {
 
 describe("Middleware after handler", () => {
   it("should allow middleware to be added after handler", () => {
-    const middleware = convex.query().middleware(async ({ context, next }) => {
+    const middleware = convex.query().middleware(async (context, next) => {
       return next({
-        context: {
-          ...context,
-          requestId: "test-123",
-        },
+        ...context,
+        requestId: "test-123",
       });
     });
 
     convex
       .query()
       .input({ count: v.number() })
-      .handler(async ({ context, input }) => {
+      .handler(async (context, input) => {
         // Handler can access context that will be transformed by middleware added after
         expectTypeOf(context.db).not.toBeAny();
         return { count: input.count };
@@ -357,28 +349,24 @@ describe("Middleware after handler", () => {
   });
 
   it("should allow multiple middleware to be added after handler", () => {
-    const middleware1 = convex.query().middleware(async ({ context, next }) => {
+    const middleware1 = convex.query().middleware(async (context, next) => {
       return next({
-        context: {
-          ...context,
-          requestId: "test-123",
-        },
+        ...context,
+        requestId: "test-123",
       });
     });
 
-    const middleware2 = convex.query().middleware(async ({ context, next }) => {
+    const middleware2 = convex.query().middleware(async (context, next) => {
       return next({
-        context: {
-          ...context,
-          timestamp: Date.now(),
-        },
+        ...context,
+        timestamp: Date.now(),
       });
     });
 
     convex
       .query()
       .input({ count: v.number() })
-      .handler(async ({ context, input }) => {
+      .handler(async (context, input) => {
         expectTypeOf(context.db).not.toBeAny();
         return { count: input.count };
       })
@@ -390,7 +378,7 @@ describe("Middleware after handler", () => {
   it("should allow middleware after handler for mutations", () => {
     const middleware = convex
       .mutation()
-      .middleware(async ({ context, next }) => {
+      .middleware(async (context, next) => {
         return next({
           context: {
             ...context,
@@ -402,7 +390,7 @@ describe("Middleware after handler", () => {
     convex
       .mutation()
       .input({ value: v.number() })
-      .handler(async ({ context, input }) => {
+      .handler(async (context, input) => {
         expectTypeOf(context.db).not.toBeAny();
         return { value: input.value };
       })
@@ -411,19 +399,17 @@ describe("Middleware after handler", () => {
   });
 
   it("should allow middleware after handler for actions", () => {
-    const middleware = convex.action().middleware(async ({ context, next }) => {
+    const middleware = convex.action().middleware(async (context, next) => {
       return next({
-        context: {
-          ...context,
-          requestId: "act-123",
-        },
+        ...context,
+        requestId: "act-123",
       });
     });
 
     convex
       .action()
       .input({ url: v.string() })
-      .handler(async ({ context, input }) => {
+      .handler(async (context, input) => {
         expectTypeOf(context.auth).not.toBeAny();
         return { url: input.url };
       })
@@ -437,7 +423,7 @@ describe("Type safety edge cases", () => {
     convex
       .query()
       .input({ count: v.number() })
-      .handler(async ({ input }) => {
+      .handler(async (context, input) => {
         expectTypeOf(input.count).toEqualTypeOf<number>();
 
         // @ts-expect-error count is a number, not a string
@@ -450,7 +436,7 @@ describe("Type safety edge cases", () => {
     convex
       .query()
       .input(z.object({ value: z.number() }))
-      .handler(async ({ input }) => {
+      .handler(async (context, input) => {
         expectTypeOf(input.value).toEqualTypeOf<number>();
 
         // @ts-expect-error value is a number, not a string
@@ -463,7 +449,7 @@ describe("Type safety edge cases", () => {
     convex
       .query()
       .input({})
-      .handler(async ({ input }) => {
+      .handler(async (context, input) => {
         expectTypeOf(input).toEqualTypeOf<Record<never, never>>();
       })
       .public();
@@ -479,7 +465,7 @@ describe("Type safety edge cases", () => {
           tags: v.array(v.string()),
         }),
       })
-      .handler(async ({ input }) => {
+      .handler(async (context, input) => {
         expectTypeOf(input.user.name).toEqualTypeOf<string>();
         expectTypeOf(input.user.age).toEqualTypeOf<number>();
         expectTypeOf(input.user.tags).toEqualTypeOf<string[]>();

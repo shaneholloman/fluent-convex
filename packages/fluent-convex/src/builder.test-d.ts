@@ -26,7 +26,7 @@ describe("ConvexBuilder Type Tests", () => {
       convex
         .query()
         .input({ count: v.number() })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           assertType<{ count: number }>(input);
           return { success: true };
         })
@@ -37,7 +37,7 @@ describe("ConvexBuilder Type Tests", () => {
       convex
         .query()
         .input(v.object({ count: v.number() }))
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           assertType<{ count: number }>(input);
           return { success: true };
         })
@@ -48,7 +48,7 @@ describe("ConvexBuilder Type Tests", () => {
       convex
         .query()
         .input(z.object({ count: z.number() }))
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           assertType<{ count: number }>(input);
           return { success: true };
         })
@@ -69,7 +69,7 @@ describe("ConvexBuilder Type Tests", () => {
       convex
         .query()
         .input(z.object({ count: z.number() }).refine((data) => data.count > 0))
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           assertType<{ count: number }>(input);
           return { success: true };
         })
@@ -265,7 +265,7 @@ describe("ConvexBuilder Type Tests", () => {
         .mutation()
         .input({ value: v.number() })
         .returns(v.id("numbers"))
-        .handler(async ({ context, input }) => {
+        .handler(async (context, input) => {
           // This should work - correct return type
           return await context.db.insert("numbers", { value: input.value });
         })
@@ -313,12 +313,10 @@ describe("ConvexBuilder Type Tests", () => {
     it("should extend context with middleware", () => {
       const authMiddleware = convex
         .query()
-        .middleware(async ({ context, next }) => {
+        .middleware(async (context, next) => {
           return next({
-            context: {
-              ...context,
-              user: { id: "123", name: "Test User" },
-            },
+            ...context,
+            user: { id: "123", name: "Test User" },
           });
         });
 
@@ -326,7 +324,7 @@ describe("ConvexBuilder Type Tests", () => {
         .query()
         .use(authMiddleware)
         .input({ count: v.number() })
-        .handler(async ({ context }) => {
+        .handler(async (context) => {
           // Context should have user property from middleware
           assertType<{ id: string; name: string }>(context.user);
 
@@ -342,23 +340,19 @@ describe("ConvexBuilder Type Tests", () => {
     it("should chain multiple middleware", () => {
       const authMiddleware = convex
         .query()
-        .middleware(async ({ context, next }) => {
+        .middleware(async (context, next) => {
           return next({
-            context: {
-              ...context,
-              user: { id: "123", name: "Test User" },
-            },
+            ...context,
+            user: { id: "123", name: "Test User" },
           });
         });
 
       const loggingMiddleware = convex
         .query()
-        .middleware(async ({ context, next }) => {
+        .middleware(async (context, next) => {
           return next({
-            context: {
-              ...context,
-              requestId: "req-123",
-            },
+            ...context,
+            requestId: "req-123",
           });
         });
 
@@ -367,7 +361,7 @@ describe("ConvexBuilder Type Tests", () => {
         .use(authMiddleware)
         .use(loggingMiddleware)
         .input({ count: v.number() })
-        .handler(async ({ context }) => {
+        .handler(async (context) => {
           // Context should have both user and requestId
           assertType<{ id: string; name: string }>(context.user);
           assertType<string>(context.requestId);
@@ -380,12 +374,10 @@ describe("ConvexBuilder Type Tests", () => {
     it("should work with mutations", () => {
       const authMiddleware = convex
         .mutation()
-        .middleware(async ({ context, next }) => {
+        .middleware(async (context, next) => {
           return next({
-            context: {
-              ...context,
-              userId: "user-123",
-            },
+            ...context,
+            userId: "user-123",
           });
         });
 
@@ -393,7 +385,7 @@ describe("ConvexBuilder Type Tests", () => {
         .mutation()
         .use(authMiddleware)
         .input({ name: v.string() })
-        .handler(async ({ context, input }) => {
+        .handler(async (context, input) => {
           assertType<string>(context.userId);
           assertType(context.db);
           assertType<string>(input.name);
@@ -405,12 +397,10 @@ describe("ConvexBuilder Type Tests", () => {
     it("should work with actions", () => {
       const authMiddleware = convex
         .action()
-        .middleware(async ({ context, next }) => {
+        .middleware(async (context, next) => {
           return next({
-            context: {
-              ...context,
-              token: "token-123",
-            },
+            ...context,
+            token: "token-123",
           });
         });
 
@@ -418,7 +408,7 @@ describe("ConvexBuilder Type Tests", () => {
         .action()
         .use(authMiddleware)
         .input({ url: v.string() })
-        .handler(async ({ context, input }) => {
+        .handler(async (context, input) => {
           assertType<string>(context.token);
           assertType<string>(input.url);
           return { success: true };
@@ -427,21 +417,17 @@ describe("ConvexBuilder Type Tests", () => {
     });
 
     it("should respect middleware application order", () => {
-      const first = convex.query().middleware(async ({ context, next }) => {
+      const first = convex.query().middleware(async (context, next) => {
         return next({
-          context: {
-            ...context,
-            first: "first",
-          },
+          ...context,
+          first: "first",
         });
       });
 
-      const second = convex.query().middleware(async ({ context, next }) => {
+      const second = convex.query().middleware(async (context, next) => {
         return next({
-          context: {
-            ...context,
-            second: "second",
-          },
+          ...context,
+          second: "second",
         });
       });
 
@@ -450,7 +436,7 @@ describe("ConvexBuilder Type Tests", () => {
         .use(first)
         .use(second)
         .input({})
-        .handler(async ({ context }) => {
+        .handler(async (context) => {
           // Both middleware values should be available in the handler
           assertType<string>(context.first);
           assertType<string>(context.second);
@@ -465,7 +451,7 @@ describe("ConvexBuilder Type Tests", () => {
       convex
         .query()
         .input({ id: v.string() })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           assertType<string>(input.id);
           return { id: input.id };
         })
@@ -476,7 +462,7 @@ describe("ConvexBuilder Type Tests", () => {
       convex
         .mutation()
         .input({ name: v.string() })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           assertType<string>(input.name);
           return { name: input.name };
         })
@@ -487,7 +473,7 @@ describe("ConvexBuilder Type Tests", () => {
       convex
         .action()
         .input({ url: v.string() })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           assertType<string>(input.url);
           return { url: input.url };
         })
@@ -498,7 +484,7 @@ describe("ConvexBuilder Type Tests", () => {
       convex
         .query()
         .input({ id: v.string() })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           assertType<string>(input.id);
           return { id: input.id };
         })
@@ -509,7 +495,7 @@ describe("ConvexBuilder Type Tests", () => {
       convex
         .mutation()
         .input({ value: v.number() })
-        .handler(async ({ context, input }) => {
+        .handler(async (context, input) => {
           assertType(context.db);
           assertType<number>(input.value);
           return { value: input.value };
@@ -521,7 +507,7 @@ describe("ConvexBuilder Type Tests", () => {
       convex
         .action()
         .input({ url: v.string() })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           assertType<string>(input.url);
           return { url: input.url };
         })
@@ -533,7 +519,7 @@ describe("ConvexBuilder Type Tests", () => {
     it("should work without input validation", () => {
       convex
         .query()
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           assertType<Record<never, never>>(input);
           return { success: true };
         })
@@ -548,7 +534,7 @@ describe("ConvexBuilder Type Tests", () => {
           name: v.optional(v.string()),
           value: v.optional(v.number()),
         })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           assertType<string>(input.id);
           assertType<string | undefined>(input.name);
           assertType<number | undefined>(input.value);
@@ -574,7 +560,7 @@ describe("ConvexBuilder Type Tests", () => {
             )
           ),
         })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           assertType<string>(input.id);
           assertType<string | undefined>(input.name);
           assertType<number | undefined>(input.count);
@@ -593,7 +579,7 @@ describe("ConvexBuilder Type Tests", () => {
           minValue: v.optional(v.number()),
           maxValue: v.optional(v.number()),
         })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           assertType<string | undefined>(input.name);
           assertType<number | undefined>(input.minValue);
           assertType<number | undefined>(input.maxValue);
@@ -610,7 +596,7 @@ describe("ConvexBuilder Type Tests", () => {
           name: v.optional(v.string()),
           value: v.optional(v.number()),
         })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           // All properties are present in the type
           assertType<string>(input.id);
           assertType<string | undefined>(input.name);
@@ -652,7 +638,7 @@ describe("ConvexBuilder Type Tests", () => {
           count: v.optional(v.number()),
           status: v.optional(v.union(v.string(), v.null())),
         })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           // When calling, use Partial to make properties truly optional
           type CallArgs = Partial<typeof input> & Pick<typeof input, "id">;
 
@@ -687,7 +673,7 @@ describe("ConvexBuilder Type Tests", () => {
           minValue: v.optional(v.number()),
           maxValue: v.optional(v.number()),
         })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           // For calling, use Partial
           type CallArgs = Partial<typeof input>;
 
@@ -722,7 +708,7 @@ describe("ConvexBuilder Type Tests", () => {
             tags: z.array(z.string()),
           })
         )
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           assertType<string>(input.user.name);
           assertType<number>(input.user.age);
           assertType<string[]>(input.tags);
@@ -736,7 +722,7 @@ describe("ConvexBuilder Type Tests", () => {
       convex
         .query()
         .input({ name: v.string(), age: v.optional(v.number()) })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           assertType<string>(input.name);
           assertType<number | undefined>(input.age);
 
@@ -751,7 +737,7 @@ describe("ConvexBuilder Type Tests", () => {
         .input({
           value: v.union(v.string(), v.number()),
         })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           assertType<string | number>(input.value);
           return { success: true };
         })
@@ -764,7 +750,7 @@ describe("ConvexBuilder Type Tests", () => {
         .input({
           tags: v.array(v.string()),
         })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           assertType<string[]>(input.tags);
           return { success: true };
         })
@@ -780,7 +766,7 @@ describe("ConvexBuilder Type Tests", () => {
             age: v.number(),
           }),
         })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           assertType<{ name: string; age: number }>(input.user);
           return { success: true };
         })
@@ -793,7 +779,7 @@ describe("ConvexBuilder Type Tests", () => {
         .input({
           kind: v.literal("user"),
         })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           assertType<"user">(input.kind);
           return { success: true };
         })
@@ -808,7 +794,7 @@ describe("ConvexBuilder Type Tests", () => {
           optional: v.optional(v.string()),
           defaulted: v.optional(v.number()),
         })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           assertType<string>(input.required);
           assertType<string | undefined>(input.optional);
           assertType<number | undefined>(input.defaulted);
@@ -823,7 +809,7 @@ describe("ConvexBuilder Type Tests", () => {
       convex
         .query()
         .input({ id: v.string() })
-        .handler(async ({ context }) => {
+        .handler(async (context) => {
           assertType(context.db);
           assertType(context.auth);
           return { success: true };
@@ -835,7 +821,7 @@ describe("ConvexBuilder Type Tests", () => {
       convex
         .mutation()
         .input({ name: v.string() })
-        .handler(async ({ context }) => {
+        .handler(async (context) => {
           assertType(context.db);
           assertType(context.auth);
           return { success: true };
@@ -847,7 +833,7 @@ describe("ConvexBuilder Type Tests", () => {
       convex
         .action()
         .input({ url: v.string() })
-        .handler(async ({ context }) => {
+        .handler(async (context) => {
           assertType(context.auth);
           assertType(context.scheduler);
           return { success: true };
@@ -875,8 +861,8 @@ describe("ConvexBuilder Type Tests", () => {
       const builder = convex;
       const authMiddleware = convex
         .query()
-        .middleware(async ({ context, next }) => {
-          return next({ context });
+        .middleware(async (context, next) => {
+          return next(context);
         });
 
       // @ts-expect-error - ConvexBuilder does not have a use method. Call .query(), .mutation(), or .action() first.
@@ -918,7 +904,7 @@ describe("ConvexBuilder Type Tests", () => {
       convex
         .query()
         .input({ id: v.string() })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           assertType<string>(input.id);
           return { id: input.id };
         })
@@ -929,7 +915,7 @@ describe("ConvexBuilder Type Tests", () => {
       convex
         .query()
         .input({ id: v.string() })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           assertType<string>(input.id);
           return { id: input.id };
         })
@@ -942,7 +928,7 @@ describe("ConvexBuilder Type Tests", () => {
       const builder = convex
         .query()
         .input({ id: v.string() })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           return { id: input.id };
         });
 
@@ -954,7 +940,7 @@ describe("ConvexBuilder Type Tests", () => {
       const builder = convex
         .mutation()
         .input({ name: v.string() })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           return { name: input.name };
         });
 
@@ -966,7 +952,7 @@ describe("ConvexBuilder Type Tests", () => {
       const builder = convex
         .action()
         .input({ url: v.string() })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           return { url: input.url };
         });
 
@@ -977,14 +963,14 @@ describe("ConvexBuilder Type Tests", () => {
     it("should prevent calling .handler() twice even with middleware in between", () => {
       const authMiddleware = convex
         .query()
-        .middleware(async ({ context, next }) => {
-          return next({ context });
+        .middleware(async (context, next) => {
+          return next(context);
         });
 
       const builder = convex
         .query()
         .input({ id: v.string() })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           return { id: input.id };
         })
         .use(authMiddleware);
@@ -1009,14 +995,14 @@ describe("ConvexBuilder Type Tests", () => {
     it("should allow chaining .use() after handler()", () => {
       const authMiddleware = convex
         .query()
-        .middleware(async ({ context, next }) => {
-          return next({ context });
+        .middleware(async (context, next) => {
+          return next(context);
         });
 
       const builder = convex
         .query()
         .input({ id: v.string() })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           return { id: input.id };
         })
         .use(authMiddleware);
@@ -1056,7 +1042,7 @@ describe("ConvexBuilder Type Tests", () => {
       const nonRegisteredQuery = convex
         .query()
         .input({ count: v.number() })
-        .handler(async ({ context, input }) => {
+        .handler(async (context, input) => {
           return `the count is ${input.count}`;
         });
 
@@ -1070,7 +1056,7 @@ describe("ConvexBuilder Type Tests", () => {
       const nonRegisteredQuery = convex
         .query()
         .input({ count: v.number() })
-        .handler(async ({ context, input }) => {
+        .handler(async (context, input) => {
           return `the count is ${input.count}`;
         });
 
@@ -1085,7 +1071,7 @@ describe("ConvexBuilder Type Tests", () => {
       const nonRegisteredMutation = convex
         .mutation()
         .input({ value: v.number() })
-        .handler(async ({ context, input }) => {
+        .handler(async (context, input) => {
           return await context.db.insert("numbers", { value: input.value });
         });
 
@@ -1100,7 +1086,7 @@ describe("ConvexBuilder Type Tests", () => {
       const nonRegisteredAction = convex
         .action()
         .input({ url: v.string() })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           return { url: input.url };
         });
 
@@ -1115,7 +1101,7 @@ describe("ConvexBuilder Type Tests", () => {
       const nonRegisteredQuery = convex
         .query()
         .input({ count: v.number() })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           return { count: input.count };
         });
 
@@ -1129,12 +1115,10 @@ describe("ConvexBuilder Type Tests", () => {
     it("should preserve callability through middleware chain", () => {
       const authMiddleware = convex
         .query()
-        .middleware(async ({ context, next }) => {
+        .middleware(async (context, next) => {
           return next({
-            context: {
-              ...context,
-              userId: "user-123",
-            },
+            ...context,
+            userId: "user-123",
           });
         });
 
@@ -1142,7 +1126,7 @@ describe("ConvexBuilder Type Tests", () => {
         .query()
         .input({ count: v.number() })
         .use(authMiddleware)
-        .handler(async ({ context, input }) => {
+        .handler(async (context, input) => {
           assertType<string>(context.userId);
           return { count: input.count, userId: context.userId };
         });
@@ -1160,23 +1144,19 @@ describe("ConvexBuilder Type Tests", () => {
     it("should preserve callability after multiple middleware", () => {
       const authMiddleware = convex
         .query()
-        .middleware(async ({ context, next }) => {
+        .middleware(async (context, next) => {
           return next({
-            context: {
-              ...context,
-              userId: "user-123",
-            },
+            ...context,
+            userId: "user-123",
           });
         });
 
       const loggingMiddleware = convex
         .query()
-        .middleware(async ({ context, next }) => {
+        .middleware(async (context, next) => {
           return next({
-            context: {
-              ...context,
-              requestId: "req-123",
-            },
+            ...context,
+            requestId: "req-123",
           });
         });
 
@@ -1185,7 +1165,7 @@ describe("ConvexBuilder Type Tests", () => {
         .input({ count: v.number() })
         .use(authMiddleware)
         .use(loggingMiddleware)
-        .handler(async ({ context, input }) => {
+        .handler(async (context, input) => {
           assertType<string>(context.userId);
           assertType<string>(context.requestId);
           return { count: input.count };
@@ -1203,7 +1183,7 @@ describe("ConvexBuilder Type Tests", () => {
       const callableMutation = convex
         .mutation()
         .input({ value: v.number() })
-        .handler(async ({ context, input }) => {
+        .handler(async (context, input) => {
           return await context.db.insert("numbers", { value: input.value });
         });
 
@@ -1217,7 +1197,7 @@ describe("ConvexBuilder Type Tests", () => {
       const callableAction = convex
         .action()
         .input({ url: v.string() })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           return { url: input.url };
         });
 
@@ -1234,7 +1214,7 @@ describe("ConvexBuilder Type Tests", () => {
           name: v.optional(v.string()),
           count: v.optional(v.number()),
         })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           return {
             name: input.name,
             count: input.count,
@@ -1257,7 +1237,7 @@ describe("ConvexBuilder Type Tests", () => {
         .query()
         .input({ count: v.number() })
         .returns(v.object({ numbers: v.array(v.number()) }))
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           return {
             numbers: Array(input.count)
               .fill(0)
@@ -1277,7 +1257,7 @@ describe("ConvexBuilder Type Tests", () => {
       const callableQuery = convex
         .query()
         .input(z.object({ count: z.number() }))
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           return { count: input.count };
         });
 
@@ -1306,7 +1286,7 @@ describe("ConvexBuilder Type Tests", () => {
       const callableQuery = convex
         .query()
         .input({ count: v.number() })
-        .handler(async ({ input }) => {
+        .handler(async (context, input) => {
           return { count: input.count };
         });
 
@@ -1328,7 +1308,7 @@ describe("ConvexBuilder Type Tests", () => {
       const callableMutation = convex
         .mutation()
         .input({ value: v.number() })
-        .handler(async ({ context, input }) => {
+        .handler(async (context, input) => {
           return await context.db.insert("numbers", { value: input.value });
         });
 

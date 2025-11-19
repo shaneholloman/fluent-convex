@@ -76,10 +76,9 @@ export class ConvexBuilderWithHandler<
 
       // Apply all middlewares in order
       for (const middleware of middlewares) {
-        const result = await middleware({
-          context: currentContext,
-          next: async (options) => ({ context: options.context }),
-        });
+        const result = await middleware(currentContext, async (context) => ({
+          context,
+        }));
         currentContext = result.context;
       }
 
@@ -211,10 +210,9 @@ export class ConvexBuilderWithHandler<
 
       // Apply all middlewares in order
       for (const middleware of middlewares) {
-        const result = await middleware({
-          context: currentContext,
-          next: async (options) => ({ context: options.context }),
-        });
+        const result = await middleware(currentContext, async (context) => ({
+          context,
+        }));
         currentContext = result.context;
       }
 

@@ -33,7 +33,7 @@ const convex = createBuilder<DataModel>();
 export const listNumbers = convex
   .query()
   .input({ count: v.number() })
-  .handler(async ({ context, input }) => {
+  .handler(async (context, input) => {
     const numbers = await context.db
       .query("numbers")
       .order("desc")
@@ -44,19 +44,17 @@ export const listNumbers = convex
   .public(); // ✅ Must end with .public() or .internal()
 
 // With middleware
-const authMiddleware = convex.query().middleware(async ({ context, next }) => {
+const authMiddleware = convex.query().middleware(async (context, next) => {
   const identity = await context.auth.getUserIdentity();
   if (!identity) {
     throw new Error("Unauthorized");
   }
 
   return next({
-    context: {
-      ...context,
-      user: {
-        id: identity.subject,
-        name: identity.name ?? "Unknown",
-      },
+    ...context,
+    user: {
+      id: identity.subject,
+      name: identity.name ?? "Unknown",
     },
   });
 });
@@ -65,7 +63,7 @@ export const listNumbersAuth = convex
   .query()
   .use(authMiddleware)
   .input({ count: v.number() })
-  .handler(async ({ context, input }) => {
+  .handler(async (context, input) => {
     const numbers = await context.db
       .query("numbers")
       .order("desc")
@@ -95,7 +93,7 @@ export const listNumbersWithZod = convex
       count: z.number().int().min(1).max(100),
     })
   )
-  .handler(async ({ context, input }) => {
+  .handler(async (context, input) => {
     // input.count is properly typed as number
     const numbers = await context.db.query("numbers").take(input.count);
 
@@ -113,19 +111,19 @@ The builder API is flexible about method ordering, allowing you to structure you
 You can add middleware **after** defining the handler, which is useful when you want to wrap existing handlers with additional functionality:
 
 ```ts
-const authMiddleware = convex.query().middleware(async ({ context, next }) => {
+const authMiddleware = convex.query().middleware(async (context, next) => {
   const identity = await context.auth.getUserIdentity();
   if (!identity) {
     throw new Error("Unauthorized");
   }
-  return next({ context: { ...context, userId: identity.subject } });
+  return next({ ...context, userId: identity.subject });
 });
 
 // Middleware can be added after the handler
 export const getNumbers = convex
   .query()
   .input({ count: v.number() })
-  .handler(async ({ context, input }) => {
+  .handler(async (context, input) => {
     return await context.db.query("numbers").take(input.count);
   })
   .use(authMiddleware) // ✅ Middleware added after handler
@@ -141,7 +139,7 @@ Before registering a function with `.public()` or `.internal()`, the builder is 
 const testQuery = convex
   .query()
   .input({ count: v.number() })
-  .handler(async ({ input }) => {
+  .handler(async (context, input) => {
     return { doubled: input.count * 2 };
   });
 

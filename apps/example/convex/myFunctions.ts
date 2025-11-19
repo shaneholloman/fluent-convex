@@ -8,7 +8,7 @@ import { api, internal } from "./_generated/api";
 export const listNumbersSimple = convex
   .query()
   .input({ count: v.number() })
-  .handler(async ({ context, input }) => {
+  .handler(async (context, input) => {
     const numbers = await context.db
       .query("numbers")
       .order("desc")
@@ -24,7 +24,7 @@ export const listNumbersSimpleWithConvexValidators = convex
   .query()
   .input(v.object({ count: v.number() }))
   .returns(v.object({ numbers: v.array(v.number()) }))
-  .handler(async ({ context, input }) => {
+  .handler(async (context, input) => {
     const numbers = await context.db
       .query("numbers")
       .order("desc")
@@ -40,7 +40,7 @@ export const listNumbersSimpleWithZod = convex
   .query()
   .input(z.object({ count: z.number() }))
   .returns(z.object({ numbers: z.array(z.number()) }))
-  .handler(async ({ context, input }) => {
+  .handler(async (context, input) => {
     const numbers = await context.db
       .query("numbers")
       .order("desc")
@@ -57,7 +57,7 @@ export const listNumbersAuth = convex
   .query()
   .use(authMiddleware)
   .input({ count: v.number() })
-  .handler(async ({ context, input }) => {
+  .handler(async (context, input) => {
     const numbers = await context.db
       .query("numbers")
       .order("desc")
@@ -76,7 +76,7 @@ export const addNumberAuth = convex
   .use(authMiddleware)
   .input({ value: v.number() })
   .returns(v.id("numbers"))
-  .handler(async ({ context, input }) => {
+  .handler(async (context, input) => {
     console.log(`User ${context.user.name} is adding ${input.value}`);
 
     return await context.db.insert("numbers", { value: input.value });
@@ -87,7 +87,7 @@ export const addNumber = convex
   .mutation()
   .input({ value: v.number() })
   .returns(v.id("numbers"))
-  .handler(async ({ context, input }) => {
+  .handler(async (context, input) => {
     return await context.db.insert("numbers", { value: input.value });
   })
   .public();
@@ -96,7 +96,7 @@ export const addNumberWithOptional = convex
   .mutation()
   .input({ value: v.number(), label: v.optional(v.string()) })
   .returns(v.id("numbers"))
-  .handler(async ({ context, input }) => {
+  .handler(async (context, input) => {
     console.log(
       `Adding ${input.value}${input.label ? ` with label "${input.label}"` : ""}`,
     );
@@ -110,7 +110,7 @@ export const listNumbersWithTimestamp = convex
   .use(authMiddleware)
   .use(addTimestamp)
   .input({ count: v.number() })
-  .handler(async ({ context, input }) => {
+  .handler(async (context, input) => {
     const numbers = await context.db
       .query("numbers")
       .order("desc")
@@ -128,7 +128,7 @@ export const listNumbersWithTimestamp = convex
 export const internalListAll = convex
   .query()
   .input({})
-  .handler(async ({ context }) => {
+  .handler(async (context) => {
     const numbers = await context.db.query("numbers").collect();
     return numbers.map((n) => n.value);
   })
@@ -138,17 +138,15 @@ export const internalListAll = convex
 export const quickQuery = convex
   .query()
   .use(
-    convex.query().middleware(async ({ context, next }) => {
+    convex.query().middleware(async (context, next) => {
       return next({
-        context: {
-          ...context,
-          requestId: Math.random().toString(36).substring(7),
-        },
+        ...context,
+        requestId: Math.random().toString(36).substring(7),
       });
     }),
   )
   .input({ limit: v.number() })
-  .handler(async ({ context, input }) => {
+  .handler(async (context, input) => {
     console.log(`Request ${context.requestId}`);
     const numbers = await context.db.query("numbers").take(input.limit);
     return numbers;
@@ -159,7 +157,7 @@ export const quickQuery = convex
 export const queryWithPostHandlerMiddleware = convex
   .query()
   .input({ count: v.number() })
-  .handler(async ({ context, input }) => {
+  .handler(async (context, input) => {
     // This middleware will be applied before this handler runs
     const numbers = await context.db
       .query("numbers")
@@ -172,12 +170,10 @@ export const queryWithPostHandlerMiddleware = convex
     };
   })
   .use(
-    convex.query().middleware(async ({ context, next }) => {
+    convex.query().middleware(async (context, next) => {
       return next({
-        context: {
-          ...context,
-          requestId: `req-${Math.random().toString(36).substring(7)}`,
-        },
+        ...context,
+        requestId: `req-${Math.random().toString(36).substring(7)}`,
       });
     }),
   )
@@ -187,7 +183,7 @@ export const queryWithPostHandlerMiddleware = convex
 export const queryWithMultiplePostHandlerMiddleware = convex
   .query()
   .input({ count: v.number() })
-  .handler(async ({ context, input }) => {
+  .handler(async (context, input) => {
     const numbers = await context.db
       .query("numbers")
       .order("desc")
@@ -199,12 +195,10 @@ export const queryWithMultiplePostHandlerMiddleware = convex
     };
   })
   .use(
-    convex.query().middleware(async ({ context, next }) => {
+    convex.query().middleware(async (context, next) => {
       return next({
-        context: {
-          ...context,
-          requestId: `req-${Date.now()}`,
-        },
+        ...context,
+        requestId: `req-${Date.now()}`,
       });
     }),
   )
@@ -215,7 +209,7 @@ export const queryWithMultiplePostHandlerMiddleware = convex
 export const mutationWithPostHandlerMiddleware = convex
   .mutation()
   .input({ value: v.number() })
-  .handler(async ({ context, input }) => {
+  .handler(async (context, input) => {
     const id = await context.db.insert("numbers", { value: input.value });
     return {
       id,
@@ -223,12 +217,10 @@ export const mutationWithPostHandlerMiddleware = convex
     };
   })
   .use(
-    convex.mutation().middleware(async ({ context, next }) => {
+    convex.mutation().middleware(async (context, next) => {
       return next({
-        context: {
-          ...context,
-          requestId: `mut-${Date.now()}`,
-        },
+        ...context,
+        requestId: `mut-${Date.now()}`,
       });
     }),
   )
@@ -243,7 +235,7 @@ export const addNumberWithMetadata = convex
     tags: v.optional(v.array(v.string())),
   })
   .returns(v.id("numbers"))
-  .handler(async ({ context, input }) => {
+  .handler(async (context, input) => {
     console.log(
       `Adding ${input.value}${input.label ? ` with label "${input.label}"` : ""}`,
     );
@@ -264,7 +256,7 @@ export const addPositiveNumber = convex
     }),
   )
   .returns(v.id("numbers"))
-  .handler(async ({ context, input }) => {
+  .handler(async (context, input) => {
     if (input.description) {
       console.log(
         `Adding positive number with description: ${input.description}`,
@@ -283,7 +275,7 @@ export const generateRandomNumbers = convex
     max: v.number(),
   })
   .returns(v.array(v.number()))
-  .handler(async ({ input }) => {
+  .handler(async (context, input) => {
     const numbers: number[] = [];
     for (let i = 0; i < input.count; i++) {
       numbers.push(
@@ -307,7 +299,7 @@ export const addRandomNumber = convex
       id: v.string(),
     }),
   )
-  .handler(async ({ context, input }) => {
+  .handler(async (context, input) => {
     const min = input.min ?? 0;
     const max = input.max ?? 100;
     const value = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -330,7 +322,7 @@ export const addNumberAuthAction = convex
       user: v.string(),
     }),
   )
-  .handler(async ({ context, input }) => {
+  .handler(async (context, input) => {
     // Actions can't directly access db, so we'll call the mutation
     const id = await context.runMutation(addNumber as any, {
       value: input.value,
@@ -356,7 +348,7 @@ export const getNumberStats = convex
       numbers: z.array(z.number()),
     }),
   )
-  .handler(async ({ context, input }) => {
+  .handler(async (context, input) => {
     const limit = input.limit ?? 100;
     const allNumbers = await context.db
       .query("numbers")
@@ -384,7 +376,7 @@ export const getNumberStats = convex
 export const deleteAllNumbers = convex
   .mutation()
   .input({})
-  .handler(async ({ context }) => {
+  .handler(async (context) => {
     const allNumbers = await context.db.query("numbers").collect();
     for (const number of allNumbers) {
       await context.db.delete(number._id);
@@ -402,7 +394,7 @@ export const filterNumbers = convex
       limit: z.number().default(10),
     }),
   )
-  .handler(async ({ context, input }) => {
+  .handler(async (context, input) => {
     const allNumbers = await context.db
       .query("numbers")
       .order("desc")
@@ -428,7 +420,7 @@ export const filterNumbers = convex
 export const getAllNumbersViaInternalQuery = convex
   .action()
   .input({})
-  .handler(async ({ context }) => {
+  .handler(async (context) => {
     // Actions can call internal queries using context.runQuery with internal API
     // In a real app, you'd import from internal after generation
     const allNumbers: number[] = await context.runQuery(
@@ -446,7 +438,7 @@ export const getAllNumbersViaInternalQuery = convex
 export const callInternalMutationFromAction = convex
   .action()
   .input({ value: v.number() })
-  .handler(async ({ context, input }) => {
+  .handler(async (context, input) => {
     await context.runMutation(internal.myFunctions.internalMutationInsert, {
       value: input.value,
     });
@@ -456,7 +448,7 @@ export const callInternalMutationFromAction = convex
 export const internalMutationInsert = convex
   .mutation()
   .input({ value: v.number() })
-  .handler(async ({ context, input }) => {
+  .handler(async (context, input) => {
     await context.db.insert("numbers", { value: input.value });
   })
   .internal();
@@ -465,7 +457,7 @@ export const internalMutationInsert = convex
 export const testQueryWithoutReturns = convex
   .query()
   .input({})
-  .handler(async () => {
+  .handler(async (context) => {
     return { value: 42 };
   })
   .public();
@@ -474,7 +466,7 @@ export const testQueryWithoutReturns = convex
 export const testMutationWithoutReturns = convex
   .mutation()
   .input({ value: v.number() })
-  .handler(async ({ context, input }) => {
+  .handler(async (context, input) => {
     return await context.db.insert("numbers", { value: input.value });
   })
   .public();
@@ -483,7 +475,7 @@ export const testMutationWithoutReturns = convex
 export const testActionWithoutReturns = convex
   .action()
   .input({ value: v.number() })
-  .handler(async ({ input }) => {
+  .handler(async (context, input) => {
     return { result: input.value * 2 };
   })
   .public();
@@ -493,7 +485,7 @@ export const testActionWithoutReturns = convex
 // export const testCallingFunctionsWithoutReturns = convex
 //   .action()
 //   .input({ value: v.number() })
-//   .handler(async ({ context, input }) => {
+//   .handler(async (context, input) => {
 //     const queryResult = await context.runQuery(
 //       api.myFunctions.testQueryWithoutReturns,
 //       {},

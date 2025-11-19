@@ -2,9 +2,7 @@ import { Context, Promisable } from "./types";
 
 export interface ConvexMiddlewareOptions<TInContext extends Context> {
   context: TInContext;
-  next: <U extends Context>(options: {
-    context: U;
-  }) => Promisable<{ context: U }>;
+  next: <U extends Context>(context: U) => Promisable<{ context: U }>;
 }
 
 export interface ConvexMiddleware<
@@ -12,7 +10,8 @@ export interface ConvexMiddleware<
   TOutContext extends Context,
 > {
   (
-    options: ConvexMiddlewareOptions<TInContext>,
+    context: TInContext,
+    next: <U extends Context>(context: U) => Promisable<{ context: U }>
   ): Promisable<{ context: TOutContext }>;
 }
 

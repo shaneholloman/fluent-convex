@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { z } from "zod";
 import { convex } from "./lib";
 import { addTimestamp, authMiddleware } from "./middleware";
-import { internal } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 
 // Example: Simple query without middleware
 export const listNumbersSimple = convex
@@ -442,3 +442,74 @@ export const getAllNumbersViaInternalQuery = convex
     };
   })
   .public();
+
+export const callInternalMutationFromAction = convex
+  .action()
+  .input({ value: v.number() })
+  .handler(async ({ context, input }) => {
+    await context.runMutation(internal.myFunctions.internalMutationInsert, {
+      value: input.value,
+    });
+  })
+  .public();
+
+export const internalMutationInsert = convex
+  .mutation()
+  .input({ value: v.number() })
+  .handler(async ({ context, input }) => {
+    await context.db.insert("numbers", { value: input.value });
+  })
+  .internal();
+
+// Test function without .returns() - this should still work with proper type inference
+export const testQueryWithoutReturns = convex
+  .query()
+  .input({})
+  .handler(async () => {
+    return { value: 42 };
+  })
+  .public();
+
+// Test mutation without .returns()
+export const testMutationWithoutReturns = convex
+  .mutation()
+  .input({ value: v.number() })
+  .handler(async ({ context, input }) => {
+    return await context.db.insert("numbers", { value: input.value });
+  })
+  .public();
+
+// Test action without .returns()
+export const testActionWithoutReturns = convex
+  .action()
+  .input({ value: v.number() })
+  .handler(async ({ input }) => {
+    return { result: input.value * 2 };
+  })
+  .public();
+
+// Test action that calls functions without .returns() - this should work with proper types
+// Commented out to avoid circular type errors during investigation
+// export const testCallingFunctionsWithoutReturns = convex
+//   .action()
+//   .input({ value: v.number() })
+//   .handler(async ({ context, input }) => {
+//     const queryResult = await context.runQuery(
+//       api.myFunctions.testQueryWithoutReturns,
+//       {},
+//     );
+//     const mutationResult = await context.runMutation(
+//       api.myFunctions.testMutationWithoutReturns,
+//       { value: input.value },
+//     );
+//     const actionResult = await context.runAction(
+//       api.myFunctions.testActionWithoutReturns,
+//       { value: input.value },
+//     );
+//     return {
+//       queryValue: queryResult.value,
+//       mutationId: mutationResult,
+//       actionResult: actionResult.result,
+//     };
+//   })
+//   .public();

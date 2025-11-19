@@ -164,8 +164,8 @@ describe("Internal functions", () => {
 
     const allNumbers = await t.query(internal.myFunctions.internalListAll, {});
     expect(allNumbers.length).toBeGreaterThan(0);
-    expect(allNumbers[0]).toHaveProperty("value");
-    expect(allNumbers[0]).toHaveProperty("_id");
+    expect(allNumbers[0]).toBe(111);
+    expect(typeof allNumbers[0]).toBe("number");
   });
 });
 

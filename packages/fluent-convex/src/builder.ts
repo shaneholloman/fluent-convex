@@ -312,8 +312,11 @@ export class ConvexBuilderWithFunctionKind<
   }
 
   handler<
-    TReturn extends
-      ExpectedReturnType<TReturnsValidator> = ExpectedReturnType<TReturnsValidator>,
+    TReturn extends [TReturnsValidator] extends [ConvexReturnsValidator]
+      ? ExpectedReturnType<TReturnsValidator>
+      : any = [TReturnsValidator] extends [ConvexReturnsValidator]
+        ? ExpectedReturnType<TReturnsValidator>
+        : any
   >(
     handlerFn: (options: {
       context: TCurrentContext;
@@ -327,9 +330,17 @@ export class ConvexBuilderWithFunctionKind<
     TArgsValidator,
     TReturnsValidator,
     TVisibility,
-    TReturn
+    [TReturnsValidator] extends [ConvexReturnsValidator]
+      ? ExpectedReturnType<TReturnsValidator>
+      : TReturn
   > &
-    CallableBuilder<TCurrentContext, TArgsValidator, TReturn> {
+    CallableBuilder<
+      TCurrentContext,
+      TArgsValidator,
+      [TReturnsValidator] extends [ConvexReturnsValidator]
+        ? ExpectedReturnType<TReturnsValidator>
+        : TReturn
+    > {
     if (this.def.handler) {
       throw new Error(
         "Handler already defined. Only one handler can be set per function chain."
@@ -349,6 +360,10 @@ export class ConvexBuilderWithFunctionKind<
       });
     };
 
+    type InferredReturn = [TReturnsValidator] extends [ConvexReturnsValidator]
+      ? ExpectedReturnType<TReturnsValidator>
+      : TReturn;
+    
     return new ConvexBuilderWithHandler<
       TDataModel,
       TFunctionType,
@@ -357,7 +372,7 @@ export class ConvexBuilderWithFunctionKind<
       TArgsValidator,
       TReturnsValidator,
       TVisibility,
-      TReturn
+      InferredReturn
     >({
       ...this.def,
       handler: rawHandler as any,
@@ -369,9 +384,9 @@ export class ConvexBuilderWithFunctionKind<
       TArgsValidator,
       TReturnsValidator,
       TVisibility,
-      TReturn
+      InferredReturn
     > &
-      CallableBuilder<TCurrentContext, TArgsValidator, TReturn>;
+      CallableBuilder<TCurrentContext, TArgsValidator, InferredReturn>;
   }
 }
 

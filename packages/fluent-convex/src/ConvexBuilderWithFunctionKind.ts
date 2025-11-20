@@ -30,7 +30,6 @@ export class ConvexBuilderWithFunctionKind<
   TArgsValidator extends ConvexArgsValidator | undefined = undefined,
   TReturnsValidator extends ConvexReturnsValidator | undefined = undefined,
   TVisibility extends Visibility = "public",
-  THasHandler extends boolean = false,
   THandlerReturn = any,
 > {
   protected def: ConvexBuilderDef<
@@ -59,7 +58,6 @@ export class ConvexBuilderWithFunctionKind<
     TArgsValidator,
     TReturnsValidator,
     TVisibility,
-    THasHandler,
     THandlerReturn
   > {
     return new ConvexBuilderWithFunctionKind<
@@ -70,7 +68,6 @@ export class ConvexBuilderWithFunctionKind<
       TArgsValidator,
       TReturnsValidator,
       TVisibility,
-      THasHandler,
       THandlerReturn
     >({
       ...this.def,
@@ -100,7 +97,6 @@ export class ConvexBuilderWithFunctionKind<
     TArgsValidator,
     TReturnsValidator,
     TVisibility,
-    THasHandler,
     THandlerReturn
   > {
     return new ConvexBuilderWithFunctionKind<
@@ -111,7 +107,6 @@ export class ConvexBuilderWithFunctionKind<
       TArgsValidator,
       TReturnsValidator,
       TVisibility,
-      THasHandler,
       THandlerReturn
     >({
       ...this.def,
@@ -129,7 +124,6 @@ export class ConvexBuilderWithFunctionKind<
     ToConvexArgsValidator<UInput>,
     TReturnsValidator,
     TVisibility,
-    THasHandler,
     THandlerReturn
   > {
     const convexValidator = isZodSchema(validator)
@@ -144,7 +138,6 @@ export class ConvexBuilderWithFunctionKind<
       ToConvexArgsValidator<UInput>,
       TReturnsValidator,
       TVisibility,
-      THasHandler,
       THandlerReturn
     >({
       ...this.def,
@@ -162,7 +155,6 @@ export class ConvexBuilderWithFunctionKind<
     TArgsValidator,
     ToConvexReturnsValidator<UReturns>,
     TVisibility,
-    THasHandler,
     THandlerReturn
   > {
     const convexValidator = isZodSchema(validator)
@@ -177,7 +169,6 @@ export class ConvexBuilderWithFunctionKind<
       TArgsValidator,
       ToConvexReturnsValidator<UReturns>,
       TVisibility,
-      THasHandler,
       THandlerReturn
     >({
       ...this.def,

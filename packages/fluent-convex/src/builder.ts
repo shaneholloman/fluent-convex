@@ -6,6 +6,5 @@ export function createBuilder<
 >(): ConvexBuilder<TDataModel> {
   return new ConvexBuilder<TDataModel>({
     middlewares: [],
-    visibility: "public",
   });
 }

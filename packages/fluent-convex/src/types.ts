@@ -77,13 +77,11 @@ export interface ConvexBuilderDef<
   TFunctionType extends FunctionType | undefined,
   TArgsValidator extends ConvexArgsValidator | undefined,
   TReturnsValidator extends ConvexReturnsValidator | undefined,
-  TVisibility extends Visibility,
 > {
   functionType?: TFunctionType;
   middlewares: readonly AnyConvexMiddleware[];
   argsValidator?: TArgsValidator;
   returnsValidator?: TReturnsValidator;
-  visibility: TVisibility;
   handler?: (context: Context, input: any) => Promise<any>;
 }
 export type ExpectedReturnType<

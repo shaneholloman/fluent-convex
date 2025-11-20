@@ -32,22 +32,19 @@ export class ConvexBuilderWithHandler<
   TCurrentContext extends Context = EmptyObject,
   TArgsValidator extends ConvexArgsValidator | undefined = undefined,
   TReturnsValidator extends ConvexReturnsValidator | undefined = undefined,
-  TVisibility extends Visibility = "public",
   THandlerReturn = any,
 > {
   private def: ConvexBuilderDef<
     TFunctionType,
     TArgsValidator,
-    TReturnsValidator,
-    TVisibility
+    TReturnsValidator
   >;
 
   constructor(
     def: ConvexBuilderDef<
       TFunctionType,
       TArgsValidator,
-      TReturnsValidator,
-      TVisibility
+      TReturnsValidator
     >
   ) {
     this.def = def;
@@ -94,7 +91,6 @@ export class ConvexBuilderWithHandler<
     TCurrentContext & UOutContext,
     TArgsValidator,
     TReturnsValidator,
-    TVisibility,
     THandlerReturn
   > &
     CallableBuilder<
@@ -108,7 +104,6 @@ export class ConvexBuilderWithHandler<
       TCurrentContext & UOutContext,
       TArgsValidator,
       TReturnsValidator,
-      TVisibility,
       THandlerReturn
     >({
       ...this.def,
@@ -119,7 +114,6 @@ export class ConvexBuilderWithHandler<
       TCurrentContext & UOutContext,
       TArgsValidator,
       TReturnsValidator,
-      TVisibility,
       THandlerReturn
     > &
       CallableBuilder<

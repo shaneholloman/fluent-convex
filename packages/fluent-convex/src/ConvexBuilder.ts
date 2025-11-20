@@ -13,11 +13,9 @@ import type {
 export class ConvexBuilder<
   TDataModel extends GenericDataModel = GenericDataModel,
 > {
-  private def: ConvexBuilderDef<undefined, undefined, undefined, "public">;
+  private def: ConvexBuilderDef<undefined, undefined, undefined>;
 
-  constructor(
-    def: ConvexBuilderDef<undefined, undefined, undefined, "public">
-  ) {
+  constructor(def: ConvexBuilderDef<undefined, undefined, undefined>) {
     this.def = def;
   }
 

@@ -27,7 +27,7 @@ export class ConvexBuilderWithFunctionKind<
   TArgsValidator extends ConvexArgsValidator | undefined = undefined,
   TReturnsValidator extends ConvexReturnsValidator | undefined = undefined,
 > {
-  public def: ConvexBuilderDef<
+  protected def: ConvexBuilderDef<
     TFunctionType,
     TArgsValidator,
     TReturnsValidator

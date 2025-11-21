@@ -33,7 +33,7 @@ export class LoggedBuilder<
       TReturnsValidator
     >,
   ) {
-    super(builder.def);
+    super((builder as any).def);
   }
 
   /**

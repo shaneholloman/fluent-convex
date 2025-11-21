@@ -48,7 +48,7 @@ class MyExtendedBuilder<
       TReturnsValidator
     >
   ) {
-    super(builder.def);
+    super((builder as any).def);
   }
 
   // A custom method that sets input and a handler

@@ -34,7 +34,7 @@ export class ConvexBuilderWithHandler<
   TReturnsValidator extends ConvexReturnsValidator | undefined = undefined,
   THandlerReturn = any,
 > {
-  public def: ConvexBuilderDef<
+  protected def: ConvexBuilderDef<
     TFunctionType,
     TArgsValidator,
     TReturnsValidator

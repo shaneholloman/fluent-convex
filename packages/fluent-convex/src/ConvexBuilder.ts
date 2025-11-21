@@ -13,7 +13,7 @@ import type {
 export class ConvexBuilder<
   TDataModel extends GenericDataModel = GenericDataModel,
 > {
-  private def: ConvexBuilderDef;
+  protected def: ConvexBuilderDef;
 
   constructor(def: ConvexBuilderDef) {
     this.def = def;

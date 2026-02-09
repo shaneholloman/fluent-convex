@@ -99,19 +99,46 @@ export class ConvexBuilderWithHandler<
     }
 
     return async (args: InferredArgs<TArgsValidator>) => {
-      let currentContext: Context = context;
-
-      // Apply all middlewares in order
-      for (const middleware of middlewares) {
-        const result = await middleware(currentContext, async (context) => ({
-          context,
-        }));
-        currentContext = result.context;
-      }
-
-      // Call the raw handler with the transformed context
-      return handler(currentContext as any, args);
+      return this._executeWithMiddleware(
+        middlewares,
+        context as Context,
+        handler,
+        args
+      );
     };
+  }
+
+  /**
+   * Execute middleware as an onion: each middleware's `next()` runs the rest
+   * of the chain (remaining middleware + handler). This allows middleware to
+   * run code before and after downstream execution, catch errors, measure
+   * timing, etc.
+   */
+  private async _executeWithMiddleware(
+    middlewares: readonly AnyConvexMiddleware[],
+    initialContext: Context,
+    handler: (context: Context, args: any) => Promise<any>,
+    args: any
+  ): Promise<THandlerReturn> {
+    let handlerResult: any;
+
+    // Build a recursive chain where calling `next(ctx)` runs the next
+    // middleware, and the innermost `next` runs the handler.
+    const createNext = (index: number) => {
+      return async <U extends Context>(ctx: U): Promise<{ context: U }> => {
+        if (index >= middlewares.length) {
+          // End of middleware chain — execute the handler
+          handlerResult = await handler(ctx as any, args);
+          return { context: ctx };
+        }
+        // Call the current middleware, passing a `next` that continues the chain
+        const result = await middlewares[index](ctx, createNext(index + 1));
+        return result as { context: U };
+      };
+    };
+
+    await createNext(0)(initialContext);
+    return handlerResult;
   }
 
   use<UOutContext extends Context>(
@@ -219,7 +246,9 @@ export class ConvexBuilderWithHandler<
       );
     }
 
-    // Compose the handler with all middlewares (including those added after .handler())
+    // Compose the handler with all middlewares using onion composition.
+    // Each middleware's `next()` executes the rest of the chain (subsequent
+    // middleware + handler), enabling try/catch, timing, and post-processing.
     const composedHandler = async (
       baseCtx:
         | QueryCtx<TDataModel>
@@ -227,18 +256,12 @@ export class ConvexBuilderWithHandler<
         | ActionCtx<TDataModel>,
       baseArgs: any
     ) => {
-      let currentContext: Context = baseCtx;
-
-      // Apply all middlewares in order
-      for (const middleware of middlewares) {
-        const result = await middleware(currentContext, async (context) => ({
-          context,
-        }));
-        currentContext = result.context;
-      }
-
-      // Call the raw handler with the transformed context
-      return handler(currentContext as any, baseArgs);
+      return this._executeWithMiddleware(
+        middlewares,
+        baseCtx as Context,
+        handler,
+        baseArgs
+      );
     };
 
     const config = {

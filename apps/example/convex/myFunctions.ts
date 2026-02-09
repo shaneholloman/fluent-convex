@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { z } from "zod";
 import { convex } from "./lib";
-import { addTimestamp, authMiddleware } from "./middleware";
+import { addTimestamp, authMiddleware, withLogging } from "./middleware";
 import { api, internal } from "./_generated/api";
 
 // Example: Simple query without middleware
@@ -477,6 +477,39 @@ export const testActionWithoutReturns = convex
   .input({ value: v.number() })
   .handler(async (context, input) => {
     return { result: input.value * 2 };
+  })
+  .public();
+
+// Onion middleware: withLogging wraps the handler, so it can time
+// execution and catch errors from downstream.
+export const listNumbersWithLogging = convex
+  .query()
+  .use(withLogging("listNumbersWithLogging"))
+  .input({ count: v.number() })
+  .handler(async (context, input) => {
+    const numbers = await context.db
+      .query("numbers")
+      .order("desc")
+      .take(input.count);
+    return { numbers: numbers.map((n) => n.value) };
+  })
+  .public();
+
+// Combining onion + context-enrichment middleware
+export const listNumbersWithLoggingAndAuth = convex
+  .query()
+  .use(withLogging("listNumbersWithLoggingAndAuth"))
+  .use(authMiddleware)
+  .input({ count: v.number() })
+  .handler(async (context, input) => {
+    const numbers = await context.db
+      .query("numbers")
+      .order("desc")
+      .take(input.count);
+    return {
+      viewer: context.user.name,
+      numbers: numbers.map((n) => n.value),
+    };
   })
   .public();
 

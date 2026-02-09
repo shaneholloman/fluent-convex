@@ -158,6 +158,47 @@ describe("Middleware functionality", () => {
   });
 });
 
+describe("Onion middleware", () => {
+  test("withLogging middleware should wrap handler execution", async () => {
+    const t = convexTest(schema, modules);
+    await t.mutation(api.myFunctions.addNumber, { value: 10 });
+    await t.mutation(api.myFunctions.addNumber, { value: 20 });
+
+    const result = await t.query(api.myFunctions.listNumbersWithLogging, {
+      count: 5,
+    });
+
+    expect(result.numbers).toContain(10);
+    expect(result.numbers).toContain(20);
+  });
+
+  test("withLogging + auth middleware should compose correctly", async () => {
+    const t = convexTest(schema, modules);
+    const tWithAuth = t.withIdentity({
+      subject: "user789",
+      name: "Bob",
+    });
+
+    await tWithAuth.mutation(api.myFunctions.addNumberAuth, { value: 99 });
+
+    const result = await tWithAuth.query(
+      api.myFunctions.listNumbersWithLoggingAndAuth,
+      { count: 5 },
+    );
+
+    expect(result.viewer).toBe("Bob");
+    expect(result.numbers).toContain(99);
+  });
+
+  test("withLogging + auth should reject unauthenticated requests", async () => {
+    const t = convexTest(schema, modules);
+
+    await expect(
+      t.query(api.myFunctions.listNumbersWithLoggingAndAuth, { count: 5 }),
+    ).rejects.toThrow("Unauthorized");
+  });
+});
+
 describe("Internal functions", () => {
   test("should call internal query", async () => {
     const t = convexTest(schema, modules);

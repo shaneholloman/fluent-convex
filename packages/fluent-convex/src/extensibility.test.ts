@@ -72,6 +72,62 @@ class MyExtendedBuilder<
   }
 }
 
+describe("extend() robustness", () => {
+  it("should not double-execute a factory that throws a TypeError mentioning 'Class constructor'", () => {
+    // A factory function that has a bug: it tries to call a class without `new`
+    // internally. This throws a TypeError whose message contains "Class constructor".
+    // The current try-catch approach catches the TypeError, sees "Class constructor"
+    // in the message, and incorrectly retries the factory as a constructor with `new`,
+    // causing the factory body (and its side effects) to run a second time.
+    let sideEffectCount = 0;
+
+    class InternalHelper {}
+
+    function factoryWithInternalClassBug(builder: any) {
+      sideEffectCount++;
+      // Bug: forgot `new` — throws "Class constructor InternalHelper cannot be invoked without 'new'"
+      return (InternalHelper as any)();
+    }
+
+    expect(() => {
+      convex.query().extend(factoryWithInternalClassBug);
+    }).toThrow(TypeError);
+
+    // The factory should have run exactly once, not twice
+    expect(sideEffectCount).toBe(1);
+  });
+
+  it("should detect classes without relying on error message strings", () => {
+    // If we're on an engine that formats the TypeError differently
+    // (e.g. not containing "Class constructor"), the current approach
+    // would re-throw instead of retrying with `new`, breaking class extension.
+    // The fix should detect classes upfront via static inspection.
+    class SimpleExtension extends ConvexBuilderWithFunctionKind {
+      constructor(builder: any) {
+        super((builder as any).def);
+      }
+      customMethod() {
+        return "works";
+      }
+    }
+
+    // This works on V8 today, but the test documents the requirement:
+    // class detection should not depend on catching + inspecting error messages.
+    const extended = convex.query().extend(SimpleExtension);
+    expect(extended).toBeInstanceOf(SimpleExtension);
+    expect(extended.customMethod()).toBe("works");
+  });
+
+  it("should work with a factory function that returns a non-class object", () => {
+    const result = convex.query().extend((builder) => {
+      return { custom: true, builder };
+    });
+
+    expect(result.custom).toBe(true);
+    expect(result.builder).toBeDefined();
+  });
+});
+
 describe("Extensibility", () => {
   it("should allow extending the builder with a custom class using constructor reference", async () => {
     const extended = convex.query().extend(MyExtendedBuilder);

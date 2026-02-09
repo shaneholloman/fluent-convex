@@ -11,6 +11,7 @@ import type {
   ConvexArgsValidator,
   ConvexReturnsValidator,
 } from "./types";
+import { extend as extendBuilder } from "./extend";
 import {
   type ValidatorInput,
   type ToConvexArgsValidator,
@@ -44,17 +45,7 @@ export class ConvexBuilderWithFunctionKind<
   extend<TResult>(
     fnOrCls: ((builder: this) => TResult) | (new (builder: this) => TResult)
   ): TResult {
-    try {
-      return (fnOrCls as (builder: this) => TResult)(this);
-    } catch (error: any) {
-      if (
-        error instanceof TypeError &&
-        error.message.includes("Class constructor")
-      ) {
-        return new (fnOrCls as new (builder: this) => TResult)(this);
-      }
-      throw error;
-    }
+    return extendBuilder(this, fnOrCls);
   }
 
   $context<U extends Context>(): ConvexBuilderWithFunctionKind<

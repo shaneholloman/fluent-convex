@@ -9,6 +9,7 @@ import type {
   Context,
   EmptyObject,
 } from "./types";
+import { extend as extendBuilder } from "./extend";
 
 export class ConvexBuilder<
   TDataModel extends GenericDataModel = GenericDataModel,
@@ -24,17 +25,7 @@ export class ConvexBuilder<
   extend<TResult>(
     fnOrCls: ((builder: this) => TResult) | (new (builder: this) => TResult)
   ): TResult {
-    try {
-      return (fnOrCls as (builder: this) => TResult)(this);
-    } catch (error: any) {
-      if (
-        error instanceof TypeError &&
-        error.message.includes("Class constructor")
-      ) {
-        return new (fnOrCls as new (builder: this) => TResult)(this);
-      }
-      throw error;
-    }
+    return extendBuilder(this, fnOrCls);
   }
 
   query(): ConvexBuilderWithFunctionKind<

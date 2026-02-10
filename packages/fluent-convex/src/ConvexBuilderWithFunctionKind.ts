@@ -48,23 +48,18 @@ export class ConvexBuilderWithFunctionKind<
     return extendBuilder(this, fnOrCls);
   }
 
-  $context<U extends Context>(): ConvexBuilderWithFunctionKind<
-    TDataModel,
-    TFunctionType,
-    U,
-    TArgsValidator,
-    TReturnsValidator
-  > {
-    return new ConvexBuilderWithFunctionKind<
-      TDataModel,
-      TFunctionType,
-      U,
-      TArgsValidator,
-      TReturnsValidator
-    >({
-      ...this.def,
-      middlewares: [],
-    });
+  $context<U extends Context>(): {
+    middleware<UOutContext extends Context>(
+      middleware: ConvexMiddleware<U, UOutContext>
+    ): ConvexMiddleware<U, UOutContext>;
+  } {
+    return {
+      middleware<UOutContext extends Context>(
+        middleware: ConvexMiddleware<U, UOutContext>
+      ): ConvexMiddleware<U, UOutContext> {
+        return middleware;
+      },
+    };
   }
 
   middleware<UOutContext extends Context>(

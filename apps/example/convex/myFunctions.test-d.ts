@@ -97,9 +97,9 @@ describe("Input type inference", () => {
         optional: v.optional(v.boolean()),
       })
       .handler(async (context, input) => {
-        expectTypeOf(input.count).toEqualTypeOf<number>();
-        expectTypeOf(input.name).toEqualTypeOf<string>();
-        expectTypeOf(input.optional).toEqualTypeOf<boolean | undefined>();
+        assertType<number>(input.count);
+        assertType<string>(input.name);
+        assertType<boolean | undefined>(input.optional);
       })
       .public();
   });
@@ -114,8 +114,8 @@ describe("Input type inference", () => {
         }),
       )
       .handler(async (context, input) => {
-        expectTypeOf(input.count).toEqualTypeOf<number>();
-        expectTypeOf(input.tags).toEqualTypeOf<string[]>();
+        assertType<number>(input.count);
+        assertType<string[]>(input.tags);
       })
       .public();
   });
@@ -320,7 +320,7 @@ describe("Visibility and function types", () => {
       .input({ url: v.string() })
       .handler(async (context, input) => {
         const result = { fetched: input.url };
-        expectTypeOf(result).toEqualTypeOf<{ fetched: string }>();
+        assertType<{ fetched: string }>(result);
         return result;
       })
       .public();
@@ -424,7 +424,7 @@ describe("Type safety edge cases", () => {
       .query()
       .input({ count: v.number() })
       .handler(async (context, input) => {
-        expectTypeOf(input.count).toEqualTypeOf<number>();
+        assertType<number>(input.count);
 
         // @ts-expect-error count is a number, not a string
         const str: string = input.count;
@@ -450,7 +450,7 @@ describe("Type safety edge cases", () => {
       .query()
       .input({})
       .handler(async (context, input) => {
-        expectTypeOf(input).toEqualTypeOf<Record<never, never>>();
+        assertType<Record<never, never>>(input);
       })
       .public();
   });
@@ -466,9 +466,9 @@ describe("Type safety edge cases", () => {
         }),
       })
       .handler(async (context, input) => {
-        expectTypeOf(input.user.name).toEqualTypeOf<string>();
-        expectTypeOf(input.user.age).toEqualTypeOf<number>();
-        expectTypeOf(input.user.tags).toEqualTypeOf<string[]>();
+        assertType<string>(input.user.name);
+        assertType<number>(input.user.age);
+        assertType<string[]>(input.user.tags);
       })
       .public();
   });

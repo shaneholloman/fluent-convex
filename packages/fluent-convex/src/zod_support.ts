@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import { zodToConvex } from "convex-helpers/server/zod";
+import { zodToConvex } from "convex-helpers/server/zod4";
 import type {
   PropertyValidators,
   GenericValidator,
@@ -7,23 +7,23 @@ import type {
 } from "convex/values";
 import type { ConvexArgsValidator } from "./types";
 
-export function isZodSchema(value: any): value is z.ZodTypeAny {
+export function isZodSchema(value: any): value is z.ZodType {
   return (
-    value && typeof value === "object" && "_def" in value && "parse" in value
+    value && typeof value === "object" && "_zod" in value && "parse" in value
   );
 }
 
-export function toConvexValidator<T extends z.ZodTypeAny>(
+export function toConvexValidator<T extends z.ZodType>(
   schema: T
 ): PropertyValidators | GenericValidator {
-  return zodToConvex(schema) as any;
+  // Cast: convex-helpers/server/zod4 types use zod/v4's $ZodType; our z is from "zod" (same runtime)
+  return zodToConvex(schema as any) as any;
 }
 
 export type ValidatorInput =
   | PropertyValidators
   | GenericValidator
-  | z.ZodObject<any>
-  | z.ZodEffects<any>;
+  | z.ZodObject<any>;
 
 export type ReturnsValidatorInput = GenericValidator | z.ZodType;
 
@@ -39,21 +39,9 @@ export type ToConvexArgsValidator<T extends ValidatorInput> =
             >
           : never;
       }
-    : T extends z.ZodEffects<infer Schema>
-      ? Schema extends z.ZodObject<infer Shape>
-        ? {
-            [K in keyof Shape]: Shape[K] extends z.ZodType<infer FieldOutput>
-              ? Validator<
-                  FieldOutput,
-                  Shape[K] extends z.ZodOptional<any> ? "optional" : "required",
-                  any
-                >
-              : never;
-          }
-        : ConvexArgsValidator
-      : T extends ConvexArgsValidator
-        ? T
-        : ConvexArgsValidator;
+    : T extends ConvexArgsValidator
+      ? T
+      : ConvexArgsValidator;
 
 // Helper type to convert ReturnsValidatorInput to a proper ConvexReturnsValidator while preserving types
 export type ToConvexReturnsValidator<T extends ReturnsValidatorInput> =

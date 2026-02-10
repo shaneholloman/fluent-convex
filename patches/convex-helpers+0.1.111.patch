@@ -1,0 +1,16 @@
+diff --git a/node_modules/convex-helpers/server/zod4.js b/node_modules/convex-helpers/server/zod4.js
+index b3009a0..2fbe518 100644
+--- a/node_modules/convex-helpers/server/zod4.js
++++ b/node_modules/convex-helpers/server/zod4.js
+@@ -623,9 +623,9 @@ function customFnBuilder(builder, customization) {
+     };
+ }
+ function zodToConvexCommon(validator, toConvex) {
+-    // Check for zid (Convex ID) validators
++    // Check for zid (Convex ID) validators (guard: Zod 4 registry can inherit metadata from parent)
+     const idTableName = _zidRegistry.get(validator);
+-    if (idTableName !== undefined) {
++    if (idTableName !== undefined && typeof idTableName.tableName === "string") {
+         return v.id(idTableName.tableName);
+     }
+     if (validator instanceof zCore.$ZodString) {

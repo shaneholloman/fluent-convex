@@ -10,8 +10,9 @@
     "dev:ts": "tsc -b --noEmit -w",
     "codegen": "convex codegen",
     "typecheck": "tsc -b --noEmit",
-    "test": "vitest run --typecheck",
-    "dev:test": "vitest --typecheck",
+    "test": "vitest run",
+    "dev:test": "vitest",
+    "test:typecheck": "vitest run --typecheck",
     "predev": "convex dev --until-success && convex dashboard",
     "build": "tsc -b && vite build",
     "lint": "tsc && eslint .  --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
@@ -20,10 +21,10 @@
   "dependencies": {
     "convex": "^1.31.0",
     "convex-helpers": "^0.1.112",
+    "fluent-convex": "*",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "zod": "^4.3.0",
-    "fluent-convex": "*"
+    "zod": "^4.3.0"
   },
   "devDependencies": {
     "@convex-dev/eslint-plugin": "^1.0.0",

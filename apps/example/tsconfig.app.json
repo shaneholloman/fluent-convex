@@ -20,5 +20,6 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src", "convex"]
+  "include": ["src", "convex"],
+  "exclude": ["convex/**/*.test-d.ts", "convex/**/*.test.ts"]
 }

@@ -1,6 +1,6 @@
 {
   "name": "fluent-convex",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "A fluent API builder for Convex functions with middleware support, inspired by oRPC",
   "type": "module",
   "main": "./dist/index.js",
@@ -50,7 +50,7 @@
   },
   "peerDependencies": {
     "convex": "^1.31.0",
-    "zod": "^3.25.0",
+    "zod": "^3.25.0 || ^4.0.0",
     "convex-helpers": ">=0.1.0"
   },
   "peerDependenciesMeta": {
@@ -69,6 +69,6 @@
     "prettier": "^3.5.3",
     "typescript": "~5.9.0",
     "vitest": "^4.0.0",
-    "zod": "^3.25.0"
+    "zod": "^4.3.0"
   }
 }

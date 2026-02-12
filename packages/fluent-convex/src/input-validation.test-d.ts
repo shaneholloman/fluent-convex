@@ -1,6 +1,5 @@
 import { describe, it, assertType } from "vitest";
 import { v } from "convex/values";
-import { z } from "zod/v4";
 import {
   defineSchema,
   defineTable,
@@ -32,38 +31,6 @@ describe("Input Validation", () => {
     convex
       .query()
       .input(v.object({ count: v.number() }))
-      .handler(async (context, input) => {
-        assertType<{ count: number }>(input);
-        return { success: true };
-      })
-      .public();
-  });
-
-  it("should accept Zod object schemas", () => {
-    convex
-      .query()
-      .input(z.object({ count: z.number() }))
-      .handler(async (context, input) => {
-        assertType<{ count: number }>(input);
-        return { success: true };
-      })
-      .public();
-  });
-
-  it("should reject Zod primitive schemas (not objects)", () => {
-    // @ts-expect-error z.number() is not a valid input validator
-    convex.query().input(z.number());
-  });
-
-  it("should reject Zod string schemas", () => {
-    // @ts-expect-error z.string() is not a valid input validator
-    convex.query().input(z.string());
-  });
-
-  it("should accept Zod schemas with refinements", () => {
-    convex
-      .query()
-      .input(z.object({ count: z.number() }).refine((data) => data.count > 0))
       .handler(async (context, input) => {
         assertType<{ count: number }>(input);
         return { success: true };
@@ -252,28 +219,6 @@ describe("Input Validation", () => {
   });
 
   describe("complex types", () => {
-    it("should handle nested Zod object schemas", () => {
-      convex
-        .query()
-        .input(
-          z.object({
-            user: z.object({
-              name: z.string(),
-              age: z.number(),
-            }),
-            tags: z.array(z.string()),
-          })
-        )
-        .handler(async (context, input) => {
-          assertType<string>(input.user.name);
-          assertType<number>(input.user.age);
-          assertType<string[]>(input.tags);
-
-          return { success: true };
-        })
-        .public();
-    });
-
     it("should handle optional fields", () => {
       convex
         .query()

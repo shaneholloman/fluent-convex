@@ -1,6 +1,5 @@
 import { describe, it, assertType } from "vitest";
 import { v } from "convex/values";
-import { z } from "zod/v4";
 import {
   defineSchema,
   defineTable,
@@ -24,28 +23,6 @@ describe("Returns Validation", () => {
       .returns(v.object({ numbers: v.array(v.number()) }))
       .handler(async () => {
         return { numbers: [1, 2, 3] };
-      })
-      .public();
-  });
-
-  it("should accept Zod return validators", () => {
-    convex
-      .query()
-      .input({ count: v.number() })
-      .returns(z.object({ numbers: z.array(z.number()) }))
-      .handler(async () => {
-        return { numbers: [1, 2, 3] };
-      })
-      .public();
-  });
-
-  it("should accept Zod primitive return types", () => {
-    convex
-      .query()
-      .input({ count: v.number() })
-      .returns(z.number())
-      .handler(async () => {
-        return 42;
       })
       .public();
   });
@@ -94,54 +71,6 @@ describe("Returns Validation", () => {
       // @ts-expect-error Return type mismatch: 'numbers' should be number[] but is string[]
       .handler(async () => {
         return { numbers: ["1", "2", "3"] };
-      })
-      .public();
-  });
-
-  it("should enforce return type with Zod validator", () => {
-    convex
-      .query()
-      .input({ count: v.number() })
-      .returns(z.object({ numbers: z.array(z.number()) }))
-      .handler(async () => {
-        // This should work - correct return type
-        return { numbers: [1, 2, 3] };
-      })
-      .public();
-  });
-
-  it("should reject incorrect return type with Zod validator", () => {
-    convex
-      .query()
-      .input({ count: v.number() })
-      .returns(z.object({ numbers: z.array(z.number()) }))
-      // @ts-expect-error Return type mismatch: handler returns { count: number } but .returns() expects { numbers: number[] }
-      .handler(async () => {
-        return { count: 5 };
-      })
-      .public();
-  });
-
-  it("should enforce primitive return types", () => {
-    convex
-      .query()
-      .input({ count: v.number() })
-      .returns(z.string())
-      .handler(async () => {
-        // This should work - correct return type
-        return "hello";
-      })
-      .public();
-  });
-
-  it("should reject wrong primitive return type", () => {
-    convex
-      .query()
-      .input({ count: v.number() })
-      .returns(z.string())
-      // @ts-expect-error Return type mismatch: handler returns number but .returns() expects string
-      .handler(async () => {
-        return 42;
       })
       .public();
   });

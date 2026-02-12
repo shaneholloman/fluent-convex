@@ -23,10 +23,3 @@ export type {
 } from "./types";
 
 export type { GenericDataModel } from "convex/server";
-
-export {
-  isZodSchema,
-  toConvexValidator,
-  type ValidatorInput,
-  type ReturnsValidatorInput,
-} from "./zod_support";

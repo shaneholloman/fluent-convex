@@ -1,6 +1,5 @@
 import { describe, it, assertType } from "vitest";
 import { v } from "convex/values";
-import { z } from "zod/v4";
 import {
   defineSchema,
   defineTable,

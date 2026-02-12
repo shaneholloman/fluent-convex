@@ -1,6 +1,5 @@
 import { describe, it, assertType } from "vitest";
 import { v } from "convex/values";
-import { z } from "zod/v4";
 import {
   defineSchema,
   defineTable,
@@ -425,22 +424,6 @@ describe("Builder Core", () => {
         (
           context: any
         ) => (args: { count: number }) => Promise<{ numbers: number[] }>
-      >(callableQuery);
-    });
-
-    it("should work with Zod input validators", () => {
-      const callableQuery = convex
-        .query()
-        .input(z.object({ count: z.number() }))
-        .handler(async (context, input) => {
-          return { count: input.count };
-        });
-
-      // Should be callable
-      assertType<
-        (
-          context: any
-        ) => (args: { count: number }) => Promise<{ count: number }>
       >(callableQuery);
     });
 

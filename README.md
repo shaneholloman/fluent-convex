@@ -4,12 +4,12 @@ A fluent API builder for Convex functions with middleware support, inspired by [
 
 ## Features
 
-- 🔄 **Middleware support** - Compose reusable middleware for authentication, logging, and more
-- 🎯 **Type-safe** - Full TypeScript support with type inference
-- ✨ **Fluent API** - Chain methods for a clean, readable syntax
-- 🔌 **Optional Zod integration** - Use Zod schemas alongside Convex validators (Zod is not required)
-- 🧩 **Extensible** - Extend the builder with your own custom methods
-- 🚀 **Works with Convex** - Built on top of Convex's function system
+- **Middleware support** - Compose reusable middleware for authentication, logging, and more
+- **Type-safe** - Full TypeScript support with type inference
+- **Fluent API** - Chain methods for a clean, readable syntax
+- **Plugin system** - Extend with plugins like `fluent-convex/zod` for Zod schema support
+- **Extensible** - Build your own plugins with the `_clone()` factory pattern
+- **Works with Convex** - Built on top of Convex's function system
 
 ## Installation
 
@@ -40,7 +40,7 @@ export const listNumbers = convex
 
     return { numbers: numbers.map((n) => n.value) };
   })
-  .public(); // ✅ Must end with .public() or .internal()
+  .public(); // Must end with .public() or .internal()
 
 // With middleware
 const authMiddleware = convex.query().createMiddleware(async (context, next) => {
@@ -73,49 +73,60 @@ export const listNumbersAuth = convex
       numbers: numbers.map((n) => n.value),
     };
   })
-  .public(); // ✅ Must end with .public() or .internal()
+  .public();
 ```
 
-## Using Zod (Optional)
+## Plugins
 
-Zod is an optional peer dependency — the library works perfectly fine with just Convex validators (`v.string()`, `v.object({...})`, etc.). If you want to use Zod schemas for input/return validation, install it separately:
+### Zod Plugin (`fluent-convex/zod`)
+
+The Zod plugin adds Zod schema support for `.input()` and `.returns()`, with **full runtime validation** including refinements (`.min()`, `.max()`, `.email()`, etc.).
 
 ```bash
-npm install zod
+npm install zod convex-helpers
 ```
 
-Once installed, you can use Zod schemas anywhere you'd use a Convex validator. The library detects Zod schemas at runtime and converts them to Convex validators automatically. Unlike raw `zodToConvex`, **all Zod refinements** (`.min()`, `.max()`, `.email()`, `.regex()`, etc.) **are fully enforced at runtime** on the server — args are validated before the handler runs, and return values are validated after.
+> **Note:** `zod` and `convex-helpers` are optional peer dependencies of `fluent-convex`. They're only needed if you use the Zod plugin.
+
+Usage:
 
 ```ts
-import { z } from "zod";
 import { createBuilder } from "fluent-convex";
+import { WithZod } from "fluent-convex/zod";
+import { z } from "zod";
 import type { DataModel } from "./_generated/dataModel";
 
 const convex = createBuilder<DataModel>();
 
-export const listNumbersWithZod = convex
+export const listNumbers = convex
   .query()
+  .extend(WithZod) // Enable Zod support
   .input(
     z.object({
-      count: z.number().int().min(1).max(100),
+      count: z.number().int().min(1).max(100), // Refinements enforced at runtime!
     })
   )
+  .returns(z.object({ numbers: z.array(z.number()) }))
   .handler(async (context, input) => {
-    // input.count is properly typed as number
     const numbers = await context.db.query("numbers").take(input.count);
-
     return { numbers: numbers.map((n) => n.value) };
   })
-  .public(); // ✅ Must end with .public() or .internal()
+  .public();
 ```
+
+Key features:
+- **Full runtime validation** - Zod refinements (`.min()`, `.max()`, `.email()`, `.regex()`, etc.) are enforced server-side. Args are validated before the handler runs; return values after.
+- **Structural conversion** - Zod schemas are automatically converted to Convex validators for Convex's built-in validation.
+- **Composable** - `.extend(WithZod)` preserves the `WithZod` type through `.use()`, `.input()`, and `.returns()` chains.
+- **Plain validators still work** - You can mix Zod and Convex validators in the same builder chain.
 
 ## Extensibility
 
-You can extend the builder with your own custom methods by subclassing `ConvexBuilderWithFunctionKind` and using the `.extend()` method. This is powerful for adding domain-specific logic or shortcuts to your builder.
+You can extend the builder with your own plugins by subclassing `ConvexBuilderWithFunctionKind` and overriding the `_clone()` factory method.
 
-### 1. Define your Extended Builder
+### Writing a Plugin
 
-Subclass `ConvexBuilderWithFunctionKind` and add your custom methods.
+The `_clone()` method is called internally by `.use()`, `.input()`, and `.returns()` to create new builder instances. By overriding it, your plugin's type is preserved through the entire builder chain.
 
 ```ts
 import {
@@ -126,9 +137,10 @@ import {
   type EmptyObject,
   type ConvexArgsValidator,
   type ConvexReturnsValidator,
+  type ConvexBuilderDef,
 } from "fluent-convex";
 
-class MyExtendedBuilder<
+class MyPlugin<
   TDataModel extends GenericDataModel = GenericDataModel,
   TFunctionType extends FunctionType = FunctionType,
   TCurrentContext extends Context = EmptyObject,
@@ -141,44 +153,54 @@ class MyExtendedBuilder<
   TArgsValidator,
   TReturnsValidator
 > {
-  // Constructor boilerplate to inherit types
-  constructor(
-    builder: ConvexBuilderWithFunctionKind<
-      TDataModel,
-      TFunctionType,
-      TCurrentContext,
-      TArgsValidator,
-      TReturnsValidator
-    >
-  ) {
-    super(builder.def);
+  // Accept both builder instances (from .extend()) and raw defs (from _clone())
+  constructor(builderOrDef: any) {
+    const def =
+      builderOrDef instanceof ConvexBuilderWithFunctionKind
+        ? (builderOrDef as any).def
+        : builderOrDef;
+    super(def);
   }
 
-  // Add your custom method
+  // Override _clone() to preserve MyPlugin through the chain
+  protected _clone(def: ConvexBuilderDef<any, any, any>): any {
+    return new MyPlugin(def);
+  }
+
+  // Add custom methods
   myCustomMethod(param: string) {
-    // You can modify the builder, add middleware, or set validators
     console.log("Custom method called with:", param);
     return this;
   }
 }
 ```
 
-### 2. Use `.extend()`
-
-Use `.extend()` to switch to your custom builder.
+Usage:
 
 ```ts
-const myQuery = convex
+export const myQuery = convex
   .query()
-  // You can pass the class constructor directly:
-  .extend(MyExtendedBuilder)
-  // OR use a factory function:
-  // .extend((builder) => new MyExtendedBuilder(builder))
-  .myCustomMethod("hello") // ✅ Now you can call your method
-  .input(v.object({}))
-  .handler(async (ctx) => {
-    return "success";
-  });
+  .extend(MyPlugin)
+  .myCustomMethod("hello")     // Custom method from plugin
+  .use(authMiddleware)          // .use() preserves MyPlugin type
+  .input({ count: v.number() })
+  .handler(async (ctx, input) => { ... })
+  .public();
+```
+
+### Composing Multiple Plugins
+
+Plugins can be composed with `.extend()`:
+
+```ts
+export const myQuery = convex
+  .query()
+  .extend(MyPlugin)
+  .extend(WithZod) // WithZod overrides .input()/.returns() from MyPlugin
+  .myCustomMethod("hello")
+  .input(z.object({ count: z.number() }))
+  .handler(async (ctx, input) => { ... })
+  .public();
 ```
 
 ## Flexible Method Ordering
@@ -190,22 +212,13 @@ The builder API is flexible about method ordering, allowing you to structure you
 You can add middleware **after** defining the handler, which is useful when you want to wrap existing handlers with additional functionality:
 
 ```ts
-const authMiddleware = convex.query().createMiddleware(async (context, next) => {
-  const identity = await context.auth.getUserIdentity();
-  if (!identity) {
-    throw new Error("Unauthorized");
-  }
-  return next({ ...context, userId: identity.subject });
-});
-
-// Middleware can be added after the handler
 export const getNumbers = convex
   .query()
   .input({ count: v.number() })
   .handler(async (context, input) => {
     return await context.db.query("numbers").take(input.count);
   })
-  .use(authMiddleware) // ✅ Middleware added after handler
+  .use(authMiddleware) // Middleware added after handler
   .public();
 ```
 
@@ -229,7 +242,7 @@ console.log(result); // { doubled: 10 }
 
 // Once registered, it's no longer callable
 export const doubleNumber = testQuery.public();
-// doubleNumber(mockContext)({ count: 5 }); // ❌ TypeScript error - not callable
+// doubleNumber(mockContext)({ count: 5 }); // TypeScript error - not callable
 ```
 
 ### Method Ordering Rules
@@ -249,28 +262,19 @@ export const doubleNumber = testQuery.public();
 - `.action()` - Define a Convex action
 - `.public()` - Register the function as public (required to register)
 - `.internal()` - Register the function as internal/private (required to register)
-- `.input(validator)` - Set input validation (Convex or Zod)
-- `.returns(validator)` - Set return validation (Convex or Zod)
+- `.input(validator)` - Set input validation (Convex validators)
+- `.returns(validator)` - Set return validation (Convex validators)
 - `.use(middleware)` - Apply middleware
 - `.createMiddleware(fn)` - Create a middleware function
 - `.handler(fn)` - Define the function handler
-- `.extend(fn)` - Extend the builder with a custom class
+- `.extend(plugin)` - Extend the builder with a plugin class
 
 ## Caveats
-
-### Zod validation is fully enforced at runtime
-
-When you use Zod schemas with `.input()` or `.returns()`, fluent-convex does two things:
-
-1. **Converts the shape** to a Convex validator (for Convex's built-in structural validation)
-2. **Runs the full Zod schema** (including refinements like `.min()`, `.max()`, `.email()`, `.regex()`, etc.) at runtime before the handler executes (for input) and after it returns (for output)
-
-This means your Zod refinements are enforced server-side. If validation fails, a `ZodError` is thrown before your handler ever runs (or before the response is returned).
 
 ### Circular types when calling `api.*` in the same file
 
 When a function calls other functions via `api.*` in the same file, and those functions don't have explicit `.returns()` validators, TypeScript may report circular initializer errors (TS7022). This is a standard Convex/TypeScript limitation, not specific to fluent-convex. Workarounds:
-1. Add `.returns()` to the **called** functions — this gives them explicit return types, breaking the cycle
+1. Add `.returns()` to the **called** functions -- this gives them explicit return types, breaking the cycle
 2. Move the calling function to a separate file
 3. Use `internal.*` from a different module
 
@@ -280,7 +284,7 @@ Check out the `/apps/example` directory for a complete working example with vari
 
 - Simple queries and mutations
 - Middleware composition
-- Zod integration
+- Zod integration via plugin
 - Internal functions
 - Type-safe context transformations
 - Custom builder extensions
@@ -289,8 +293,8 @@ Check out the `/apps/example` directory for a complete working example with vari
 
 This is a monorepo using npm workspaces:
 
-- `/packages/fluent-convex` - The npm package source code
-- `/apps/example` - Example Convex app using the package
+- `/packages/fluent-convex` - The core library (includes the Zod plugin at `fluent-convex/zod`)
+- `/apps/example` - Example Convex app
 
 ### Setup
 
@@ -300,7 +304,7 @@ npm install
 
 This will install dependencies for all workspaces.
 
-### Building the package
+### Building
 
 ```bash
 npm run build

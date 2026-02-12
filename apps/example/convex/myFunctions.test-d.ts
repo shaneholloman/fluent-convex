@@ -1,5 +1,6 @@
 import { describe, it, assertType, expectTypeOf } from "vitest";
 import { createBuilder } from "fluent-convex";
+import { WithZod } from "fluent-convex/zod";
 import { v } from "convex/values";
 import { z } from "zod/v4";
 import type { Doc, Id, DataModel } from "./_generated/dataModel";
@@ -123,6 +124,7 @@ describe("Input type inference", () => {
   it("should infer types from Zod schemas", () => {
     convex
       .query()
+      .extend(WithZod)
       .input(
         z.object({
           count: z.number(),
@@ -141,6 +143,7 @@ describe("Input type inference", () => {
   it("should handle Zod optional fields", () => {
     convex
       .query()
+      .extend(WithZod)
       .input(
         z.object({
           required: z.number(),
@@ -157,6 +160,7 @@ describe("Input type inference", () => {
   it("should infer types from Zod refinements", () => {
     convex
       .query()
+      .extend(WithZod)
       .input(z.object({ count: z.number() }).refine((data) => data.count > 0))
       .handler(async (context, input) => {
         expectTypeOf(input.count).toEqualTypeOf<number>();
@@ -200,6 +204,7 @@ describe("Return type inference", () => {
   it("should validate return types with Zod schemas", () => {
     convex
       .query()
+      .extend(WithZod)
       .input(z.object({ count: z.number() }))
       .returns(
         z.object({
@@ -219,6 +224,7 @@ describe("Return type inference", () => {
   it("should validate primitive return types with Zod", () => {
     convex
       .query()
+      .extend(WithZod)
       .input({ value: v.number() })
       .returns(z.number())
       .handler(async (context, input) => {
@@ -435,6 +441,7 @@ describe("Type safety edge cases", () => {
   it("should catch wrong input types with Zod", () => {
     convex
       .query()
+      .extend(WithZod)
       .input(z.object({ value: z.number() }))
       .handler(async (context, input) => {
         expectTypeOf(input.value).toEqualTypeOf<number>();

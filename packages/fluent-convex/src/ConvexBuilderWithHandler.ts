@@ -12,7 +12,6 @@ import {
 } from "convex/server";
 import type { ConvexMiddleware, AnyConvexMiddleware } from "./middleware";
 import { extend as extendBuilder } from "./extend";
-import { zodParse } from "./zod_support";
 import type {
   FunctionType,
   Context,
@@ -124,11 +123,9 @@ export class ConvexBuilderWithHandler<
    * run code before and after downstream execution, catch errors, measure
    * timing, etc.
    *
-   * When Zod schemas are present:
-   * - Args are validated with the full Zod schema (including refinements) before
-   *   entering the middleware chain.
-   * - The handler's return value is validated with the full Zod returns schema
-   *   (including refinements) after the handler executes.
+   * When transform hooks are present (set by plugins):
+   * - `argsTransform` runs before the middleware chain (validates/transforms args).
+   * - `returnsTransform` runs after the handler (validates/transforms the return value).
    */
   private async _executeWithMiddleware(
     middlewares: readonly AnyConvexMiddleware[],
@@ -136,10 +133,10 @@ export class ConvexBuilderWithHandler<
     handler: (context: Context, args: any) => Promise<any>,
     args: any
   ): Promise<THandlerReturn> {
-    // Validate args with Zod schema if present (includes refinements)
-    const { zodArgsSchema, zodReturnsSchema } = this.def;
-    if (zodArgsSchema) {
-      zodParse(zodArgsSchema, args);
+    // Run args transform hook if present (e.g. Zod validation from plugin)
+    const { argsTransform, returnsTransform } = this.def;
+    if (argsTransform) {
+      args = argsTransform(args);
     }
 
     let handlerResult: any;
@@ -161,9 +158,9 @@ export class ConvexBuilderWithHandler<
 
     await createNext(0)(initialContext);
 
-    // Validate return value with Zod schema if present (includes refinements)
-    if (zodReturnsSchema) {
-      zodParse(zodReturnsSchema, handlerResult);
+    // Run returns transform hook if present (e.g. Zod validation from plugin)
+    if (returnsTransform) {
+      handlerResult = returnsTransform(handlerResult);
     }
 
     return handlerResult;

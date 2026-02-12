@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { z } from "zod/v4";
+import { WithZod } from "fluent-convex/zod";
 import { convex } from "./lib";
 import { addTimestamp, authMiddleware, withLogging } from "./middleware";
 import { api, internal } from "./_generated/api";
@@ -38,6 +39,7 @@ export const listNumbersSimpleWithConvexValidators = convex
 
 export const listNumbersSimpleWithZod = convex
   .query()
+  .extend(WithZod)
   .input(z.object({ count: z.number() }))
   .returns(z.object({ numbers: z.array(z.number()) }))
   .handler(async (context, input) => {
@@ -249,6 +251,7 @@ export const addNumberWithMetadata = convex
 // Testing Zod with refinements and custom validation
 export const addPositiveNumber = convex
   .mutation()
+  .extend(WithZod)
   .input(
     z.object({
       value: z.number().positive("Value must be positive"),
@@ -338,6 +341,7 @@ export const addNumberAuthAction = convex
 // Testing query with complex return type using Zod
 export const getNumberStats = convex
   .query()
+  .extend(WithZod)
   .input(z.object({ limit: z.number().optional() }))
   .returns(
     z.object({
@@ -388,6 +392,7 @@ export const deleteAllNumbers = convex
 // Testing query with union types using Zod
 export const filterNumbers = convex
   .query()
+  .extend(WithZod)
   .input(
     z.object({
       filter: z.enum(["all", "positive", "negative", "zero"]),

@@ -1,4 +1,5 @@
 import type { GenericDataModel } from "convex/server";
+import type { GenericValidator, PropertyValidators } from "convex/values";
 import { ConvexBuilderWithHandler } from "./ConvexBuilderWithHandler";
 import { InferredArgs, InferredHandlerReturn } from "./types";
 import { ConvexBuilderDef } from "./types";
@@ -12,14 +13,6 @@ import type {
   ConvexReturnsValidator,
 } from "./types";
 import { extend as extendBuilder } from "./extend";
-import {
-  type ValidatorInput,
-  type ToConvexArgsValidator,
-  isZodSchema,
-  toConvexValidator,
-  type ReturnsValidatorInput,
-  type ToConvexReturnsValidator,
-} from "./zod_support";
 
 export class ConvexBuilderWithFunctionKind<
   TDataModel extends GenericDataModel = GenericDataModel,
@@ -38,6 +31,15 @@ export class ConvexBuilderWithFunctionKind<
     def: ConvexBuilderDef<TFunctionType, TArgsValidator, TReturnsValidator>
   ) {
     this.def = def;
+  }
+
+  /**
+   * Factory method for creating new builder instances. Subclasses (plugins)
+   * override this to return their own type, ensuring that methods like
+   * `.use()`, `.input()`, `.returns()` preserve the plugin type through the chain.
+   */
+  protected _clone(def: ConvexBuilderDef<any, any, any>): any {
+    return new ConvexBuilderWithFunctionKind(def);
   }
 
   extend<TResult>(fn: (builder: this) => TResult): TResult;
@@ -87,69 +89,39 @@ export class ConvexBuilderWithFunctionKind<
     TArgsValidator,
     TReturnsValidator
   > {
-    return new ConvexBuilderWithFunctionKind<
-      TDataModel,
-      TFunctionType,
-      TCurrentContext & UOutContext,
-      TArgsValidator,
-      TReturnsValidator
-    >({
+    return this._clone({
       ...this.def,
       middlewares: [...this.def.middlewares, middleware as AnyConvexMiddleware],
     });
   }
 
-  input<UInput extends ValidatorInput>(
+  input<UInput extends PropertyValidators | GenericValidator>(
     validator: UInput
   ): ConvexBuilderWithFunctionKind<
     TDataModel,
     TFunctionType,
     TCurrentContext,
-    ToConvexArgsValidator<UInput>,
+    UInput extends ConvexArgsValidator ? UInput : ConvexArgsValidator,
     TReturnsValidator
   > {
-    const isZod = isZodSchema(validator);
-    const convexValidator = isZod
-      ? (toConvexValidator(validator) as ToConvexArgsValidator<UInput>)
-      : (validator as ToConvexArgsValidator<UInput>);
-
-    return new ConvexBuilderWithFunctionKind<
-      TDataModel,
-      TFunctionType,
-      TCurrentContext,
-      ToConvexArgsValidator<UInput>,
-      TReturnsValidator
-    >({
+    return this._clone({
       ...this.def,
-      argsValidator: convexValidator,
-      zodArgsSchema: isZod ? validator : undefined,
+      argsValidator: validator,
     });
   }
 
-  returns<UReturns extends ReturnsValidatorInput>(
+  returns<UReturns extends GenericValidator>(
     validator: UReturns
   ): ConvexBuilderWithFunctionKind<
     TDataModel,
     TFunctionType,
     TCurrentContext,
     TArgsValidator,
-    ToConvexReturnsValidator<UReturns>
+    UReturns extends ConvexReturnsValidator ? UReturns : ConvexReturnsValidator
   > {
-    const isZod = isZodSchema(validator);
-    const convexValidator = isZod
-      ? (toConvexValidator(validator) as ToConvexReturnsValidator<UReturns>)
-      : (validator as ToConvexReturnsValidator<UReturns>);
-
-    return new ConvexBuilderWithFunctionKind<
-      TDataModel,
-      TFunctionType,
-      TCurrentContext,
-      TArgsValidator,
-      ToConvexReturnsValidator<UReturns>
-    >({
+    return this._clone({
       ...this.def,
-      returnsValidator: convexValidator,
-      zodReturnsSchema: isZod ? validator : undefined,
+      returnsValidator: validator,
     });
   }
 

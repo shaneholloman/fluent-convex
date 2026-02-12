@@ -25,7 +25,7 @@ const schema = defineSchema({
 
 const convex = createBuilder<DataModelFromSchemaDefinition<typeof schema>>();
 
-// Define an extended builder class
+// Define an extended builder class that overrides _clone() for proper chaining
 class MyExtendedBuilder<
   TDataModel extends GenericDataModel = GenericDataModel,
   TFunctionType extends FunctionType = FunctionType,
@@ -40,15 +40,26 @@ class MyExtendedBuilder<
   TReturnsValidator
 > {
   constructor(
-    builder: ConvexBuilderWithFunctionKind<
-      TDataModel,
-      TFunctionType,
-      TCurrentContext,
-      TArgsValidator,
-      TReturnsValidator
-    >
+    builderOrDef:
+      | ConvexBuilderWithFunctionKind<
+          TDataModel,
+          TFunctionType,
+          TCurrentContext,
+          TArgsValidator,
+          TReturnsValidator
+        >
+      | any
   ) {
-    super((builder as any).def);
+    // Accept either a builder instance (from .extend()) or a raw def (from _clone())
+    const def =
+      builderOrDef instanceof ConvexBuilderWithFunctionKind
+        ? (builderOrDef as any).def
+        : builderOrDef;
+    super(def);
+  }
+
+  protected _clone(def: any): any {
+    return new MyExtendedBuilder(def);
   }
 
   // A custom method that sets input and a handler
@@ -63,12 +74,16 @@ class MyExtendedBuilder<
     );
   }
 
-  // A custom method that modifies the builder state and RE-WRAPS it
+  // A custom method that modifies the builder state
   withDefaultInput() {
-    const next = this.input(v.object({ defaultField: v.string() }));
-    // Re-wrap to maintain the extended class if we want to chain further custom methods
-    // Note: standard methods like .handler() will still return their standard types
-    return new MyExtendedBuilder(next);
+    // Thanks to _clone(), this.input() returns a MyExtendedBuilder, not the base class
+    return this.input(v.object({ defaultField: v.string() })) as any as MyExtendedBuilder<
+      TDataModel,
+      TFunctionType,
+      TCurrentContext,
+      any,
+      TReturnsValidator
+    >;
   }
 }
 
@@ -181,18 +196,14 @@ describe("Extensibility", () => {
       .query()
       .extend((builder) => new MyExtendedBuilder(builder));
 
-    const middleware = convex.query().createMiddleware(async (ctx, next) => {
+    // Create middleware using the extended builder's context type
+    const middleware = extended.createMiddleware(async (ctx, next) => {
       return next({ ...ctx, extra: "data" });
     });
 
-    // Note: .use() returns the BASE class, so we can't chain .withDefaultInput() AFTER .use()
-    // unless we re-extend or override .use().
-    // For this test, we'll call the custom method first, or re-wrap.
-
+    // With _clone(), .use() now preserves the subclass type through the chain
     const chained = extended
-      // Call custom method first (returns Extended)
       .withDefaultInput()
-      // Then call standard method (returns Base)
       .use(middleware)
       .handler(async (ctx: any, args) => {
         return `${args.defaultField}-${ctx.extra}`;
@@ -200,5 +211,40 @@ describe("Extensibility", () => {
 
     const result = await chained({} as any)({ defaultField: "value" });
     expect(result).toBe("value-data");
+  });
+
+  it("should preserve subclass through .use() via _clone()", async () => {
+    const extended = convex
+      .query()
+      .extend((builder) => new MyExtendedBuilder(builder));
+
+    // Create middleware using the extended builder's context type
+    const middleware = extended.createMiddleware(async (ctx, next) => {
+      return next({ ...ctx, extra: "data" });
+    });
+
+    // .use() should return a MyExtendedBuilder, not the base class
+    const afterUse = extended.use(middleware);
+    expect(afterUse).toBeInstanceOf(MyExtendedBuilder);
+  });
+
+  it("should preserve subclass through .input() via _clone()", async () => {
+    const extended = convex
+      .query()
+      .extend((builder) => new MyExtendedBuilder(builder));
+
+    // .input() should return a MyExtendedBuilder, not the base class
+    const afterInput = extended.input({ count: v.number() });
+    expect(afterInput).toBeInstanceOf(MyExtendedBuilder);
+  });
+
+  it("should preserve subclass through .returns() via _clone()", async () => {
+    const extended = convex
+      .query()
+      .extend((builder) => new MyExtendedBuilder(builder));
+
+    // .returns() should return a MyExtendedBuilder, not the base class
+    const afterReturns = extended.returns(v.string());
+    expect(afterReturns).toBeInstanceOf(MyExtendedBuilder);
   });
 });

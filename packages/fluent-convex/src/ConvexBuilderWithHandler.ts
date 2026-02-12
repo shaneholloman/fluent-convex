@@ -308,35 +308,3 @@ export class ConvexBuilderWithHandler<
     return registrationFn(config);
   }
 }
-
-
-
-export const myQuery = convex
-  .query()
-  .extend(withMyPlugin())
-  .extend(withZod()) 
-  .myCustomMethod("hello") // comes from my-plugin      
-  .input(z.object({...}))  // comes from the zod plugin as it overwrote it last
-  .returns(z.object({...})) // comes from the zod plugin
-  .handler(...)
-  .public();
-
-where withMyPlugin() can return an object that lets us override the input builder:
-
-const withMyPlugin = <T extends FluentConvexBuilder>(builder: T) => {
-  return {
-    overrideInput: () => ... // does something to override the build in input
-    addMethods: {
-      myCustomMethod: (str: string) => {
-        ...
-      }
-    }
-  }
-}
-
-const withZod = <T extends FluentConvexBuilder>(builder: T) => {
-  return {
-    overrideInput: () => ... // overrides the does the zod input checks
-    overrideReturns: () =>  ... // overrides the returns
-  }
-}

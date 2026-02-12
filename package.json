@@ -14,6 +14,9 @@
     "test": "npm run test --workspaces --if-present",
     "dev:test": "npm run dev:test --workspace=packages/fluent-convex",
     "codegen": "npm run codegen --workspace=apps/example",
+    "docs:dev": "npm run dev --workspace=apps/docs",
+    "docs:build": "npm run build --workspace=apps/docs",
+    "docs:deploy": "npm run deploy --workspace=apps/docs",
     "check:all": "npm run build && npm run codegen && npm run typecheck && npm run test"
   },
   "devDependencies": {

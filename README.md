@@ -2,13 +2,15 @@
 
 A fluent API builder for Convex functions with middleware support, inspired by [oRPC](https://orpc.unnoq.com/).
 
+**[Live Docs & Interactive Showcase](https://fluent-convex.convex.site)** -- see every feature in action with live demos and real source code.
+
 ## Features
 
-- **Middleware support** - Compose reusable middleware for authentication, logging, and more
+- **Middleware support** - Compose reusable middleware for authentication, logging, and more ([docs](https://fluent-convex.convex.site#middleware))
 - **Type-safe** - Full TypeScript support with type inference
-- **Fluent API** - Chain methods for a clean, readable syntax
-- **Plugin system** - Extend with plugins like `fluent-convex/zod` for Zod schema support
-- **Extensible** - Build your own plugins with the `_clone()` factory pattern
+- **Fluent API** - Chain methods for a clean, readable syntax ([docs](https://fluent-convex.convex.site#basics))
+- **Plugin system** - Extend with plugins like `fluent-convex/zod` for Zod schema support ([docs](https://fluent-convex.convex.site#zod-plugin))
+- **Extensible** - Build your own plugins with the `_clone()` factory pattern ([docs](https://fluent-convex.convex.site#custom-plugins))
 - **Works with Convex** - Built on top of Convex's function system
 
 ## Installation
@@ -18,6 +20,8 @@ npm install fluent-convex
 ```
 
 ## Quick Start
+
+> For a complete walkthrough with live demos, see the **[Getting Started guide](https://fluent-convex.convex.site#getting-started)**.
 
 **Important:** All functions must end with `.public()` or `.internal()` to be registered with Convex.
 
@@ -76,9 +80,47 @@ export const listNumbersAuth = convex
   .public();
 ```
 
+## Validation
+
+> See the **[Validation docs](https://fluent-convex.convex.site#validation)** for a side-by-side comparison of all three approaches with live demos.
+
+fluent-convex supports three flavors of input validation through the same `.input()` API:
+
+1. **Property validators** -- `{ count: v.number() }` (simplest)
+2. **Object validators** -- `v.object({ count: v.number() })` (with `.returns()` support)
+3. **Zod schemas** -- `z.object({ count: z.number().min(1) })` (via the Zod plugin)
+
+## Middleware
+
+> See the **[Middleware docs](https://fluent-convex.convex.site#middleware)** for detailed examples of both patterns.
+
+There are two main middleware patterns:
+
+- **Context-enrichment** -- adds new properties to the context (e.g. `ctx.user`)
+- **Onion (wrap)** -- runs code before *and* after the handler (e.g. timing, error handling)
+
+## Reusable Chains
+
+> See the **[Reusable Chains docs](https://fluent-convex.convex.site#reusable-chains)** for callable syntax, stacking middleware, and the "define once, register multiple ways" pattern.
+
+Because the builder is immutable, you can stop the chain at any point and reuse that partial builder later. A builder with a `.handler()` but no `.public()` is called a **callable** -- you can invoke it directly for testing or extend it with more middleware before registering.
+
+```ts
+// Define once
+const authedQuery = convex.query().use(authMiddleware);
+
+// Reuse everywhere
+export const listTasks = authedQuery
+  .input({})
+  .handler(async (ctx) => { /* ctx.user is typed! */ })
+  .public();
+```
+
 ## Plugins
 
 ### Zod Plugin (`fluent-convex/zod`)
+
+> See the **[Zod Plugin docs](https://fluent-convex.convex.site#zod-plugin)** for live demos including refinement validation.
 
 The Zod plugin adds Zod schema support for `.input()` and `.returns()`, with **full runtime validation** including refinements (`.min()`, `.max()`, `.email()`, etc.).
 
@@ -121,6 +163,8 @@ Key features:
 - **Plain validators still work** - You can mix Zod and Convex validators in the same builder chain.
 
 ## Extensibility
+
+> See the **[Custom Plugins docs](https://fluent-convex.convex.site#custom-plugins)** for a complete worked example with live demo.
 
 You can extend the builder with your own plugins by subclassing `ConvexBuilderWithFunctionKind` and overriding the `_clone()` factory method.
 
@@ -203,6 +247,26 @@ export const myQuery = convex
   .public();
 ```
 
+## Actions
+
+> See the **[Actions docs](https://fluent-convex.convex.site#actions)** for live demos of seeding data and orchestrating queries.
+
+Actions work with the same fluent API. Define them with `.action()` and use middleware as normal:
+
+```ts
+export const seedNumbers = convex
+  .action()
+  .use(withLogging("seedNumbers"))
+  .input({ count: v.number() })
+  .handler(async (ctx, input) => {
+    for (let i = 0; i < input.count; i++) {
+      await ctx.runMutation(api.basics.addNumber, { value: Math.random() * 100 });
+    }
+    return { seeded: input.count };
+  })
+  .public();
+```
+
 ## Flexible Method Ordering
 
 The builder API is flexible about method ordering, allowing you to structure your code in the way that makes the most sense for your use case.
@@ -278,16 +342,22 @@ When a function calls other functions via `api.*` in the same file, and those fu
 2. Move the calling function to a separate file
 3. Use `internal.*` from a different module
 
-## Example
+## Documentation
 
-Check out the `/apps/example` directory for a complete working example with various use cases including:
+The **[live docs site](https://fluent-convex.convex.site)** is an interactive showcase that demonstrates every feature with working live demos. The code snippets shown on the docs site are the actual source code powering the app -- imported via Vite `?raw` imports, so what you see is what runs.
 
-- Simple queries and mutations
-- Middleware composition
-- Zod integration via plugin
-- Internal functions
-- Type-safe context transformations
-- Custom builder extensions
+Sections:
+- [Getting Started](https://fluent-convex.convex.site#getting-started) -- builder setup and overview
+- [Basics](https://fluent-convex.convex.site#basics) -- queries, mutations, and the fluent chain
+- [Validation](https://fluent-convex.convex.site#validation) -- property validators, object validators, and Zod schemas
+- [Middleware](https://fluent-convex.convex.site#middleware) -- context-enrichment and onion middleware
+- [Reusable Chains](https://fluent-convex.convex.site#reusable-chains) -- callable syntax and composability
+- [Zod Plugin](https://fluent-convex.convex.site#zod-plugin) -- runtime refinement validation
+- [Custom Plugins](https://fluent-convex.convex.site#custom-plugins) -- building your own plugins with `.extend()`
+- [Actions](https://fluent-convex.convex.site#actions) -- orchestrating queries and mutations
+- [Auth Middleware](https://fluent-convex.convex.site#auth) -- reusable auth patterns
+
+The docs source lives in [`/apps/docs`](./apps/docs) and is auto-deployed on every push to `main`.
 
 ## Development
 
@@ -295,6 +365,7 @@ This is a monorepo using npm workspaces:
 
 - `/packages/fluent-convex` - The core library (includes the Zod plugin at `fluent-convex/zod`)
 - `/apps/example` - Example Convex app
+- `/apps/docs` - Interactive docs & showcase site ([live](https://fluent-convex.convex.site))
 
 ### Setup
 
@@ -321,6 +392,12 @@ npm test
 ```bash
 cd apps/example
 npm run dev
+```
+
+### Running the docs locally
+
+```bash
+npm run docs:dev
 ```
 
 ## Credits

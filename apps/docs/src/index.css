@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@theme {
+  --color-light: #ffffff;
+  --color-dark: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    color: var(--color-light);
+    background: var(--color-dark);
+    font-family: Arial, Helvetica, sans-serif;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  body {
+    color: var(--color-dark);
+    background: var(--color-light);
+    font-family: Arial, Helvetica, sans-serif;
+  }
+}
+
+/* sugar-high syntax highlighting tokens */
+:root {
+  --sh-class: #4ec9b0;
+  --sh-identifier: #d4d4d4;
+  --sh-sign: #89ddff;
+  --sh-property: #9cdcfe;
+  --sh-entity: #569cd6;
+  --sh-jsxliterals: #9cdcfe;
+  --sh-string: #ce9178;
+  --sh-keyword: #c586c0;
+  --sh-comment: #6a9955;
+}

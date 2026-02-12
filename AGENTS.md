@@ -3,6 +3,7 @@
 Fluent builder for Convex functions with middleware. Monorepo:
 - `packages/fluent-convex` — core library (includes Zod plugin at `fluent-convex/zod`)
 - `apps/example` — demo app
+- `apps/docs` — interactive docs & showcase site (self-hosted on Convex via `@convex-dev/self-hosting`, auto-deployed on push to `main`)
 
 ## Testing
 

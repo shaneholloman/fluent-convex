@@ -1,0 +1,40 @@
+name: Deploy Docs
+
+on:
+  push:
+    branches: [main]
+
+  # Allow manual trigger from Actions tab
+  workflow_dispatch:
+
+# Only allow one deploy at a time, cancel in-progress runs
+concurrency:
+  group: deploy-docs
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install
+
+      - name: Build core library
+        run: npm run build --workspace=packages/fluent-convex
+
+      # Deploys Convex backend + builds frontend + uploads static files
+      # Uses CONVEX_DEPLOY_KEY to authenticate with the production deployment
+      - name: Deploy Convex backend + static site
+        working-directory: apps/docs
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+        run: npx @convex-dev/self-hosting deploy

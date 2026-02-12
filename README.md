@@ -84,7 +84,7 @@ Zod is an optional peer dependency — the library works perfectly fine with jus
 npm install zod
 ```
 
-Once installed, you can use Zod schemas anywhere you'd use a Convex validator. The library detects Zod schemas at runtime and converts them to Convex validators automatically.
+Once installed, you can use Zod schemas anywhere you'd use a Convex validator. The library detects Zod schemas at runtime and converts them to Convex validators automatically. Unlike raw `zodToConvex`, **all Zod refinements** (`.min()`, `.max()`, `.email()`, `.regex()`, etc.) **are fully enforced at runtime** on the server — args are validated before the handler runs, and return values are validated after.
 
 ```ts
 import { z } from "zod";
@@ -258,9 +258,14 @@ export const doubleNumber = testQuery.public();
 
 ## Caveats
 
-### Zod refinements are not enforced server-side
+### Zod validation is fully enforced at runtime
 
-When using Zod schemas with `.input()` or `.returns()`, only the structural shape is converted to a Convex validator (string, number, object fields, etc.). Zod refinements like `.min()`, `.max()`, `.email()`, `.positive()`, `.regex()`, etc. are **silently dropped** — Convex validators have no equivalent. This means refinements validate on the client via Zod but **not** on the server via Convex. If you need server-side constraint validation, add explicit checks in your handler.
+When you use Zod schemas with `.input()` or `.returns()`, fluent-convex does two things:
+
+1. **Converts the shape** to a Convex validator (for Convex's built-in structural validation)
+2. **Runs the full Zod schema** (including refinements like `.min()`, `.max()`, `.email()`, `.regex()`, etc.) at runtime before the handler executes (for input) and after it returns (for output)
+
+This means your Zod refinements are enforced server-side. If validation fails, a `ZodError` is thrown before your handler ever runs (or before the response is returned).
 
 ### Circular types when calling `api.*` in the same file
 

@@ -83,6 +83,10 @@ export interface ConvexBuilderDef<
   argsValidator?: TArgsValidator;
   returnsValidator?: TReturnsValidator;
   handler?: (context: Context, input: any) => Promise<any>;
+  /** Original Zod schema for args — used for runtime validation including refinements. */
+  zodArgsSchema?: unknown;
+  /** Original Zod schema for returns — used for runtime validation including refinements. */
+  zodReturnsSchema?: unknown;
 }
 export type ExpectedReturnType<
   TReturnsValidator extends ConvexReturnsValidator | undefined,

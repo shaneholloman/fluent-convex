@@ -108,7 +108,8 @@ export class ConvexBuilderWithFunctionKind<
     ToConvexArgsValidator<UInput>,
     TReturnsValidator
   > {
-    const convexValidator = isZodSchema(validator)
+    const isZod = isZodSchema(validator);
+    const convexValidator = isZod
       ? (toConvexValidator(validator) as ToConvexArgsValidator<UInput>)
       : (validator as ToConvexArgsValidator<UInput>);
 
@@ -121,6 +122,7 @@ export class ConvexBuilderWithFunctionKind<
     >({
       ...this.def,
       argsValidator: convexValidator,
+      zodArgsSchema: isZod ? validator : undefined,
     });
   }
 
@@ -133,7 +135,8 @@ export class ConvexBuilderWithFunctionKind<
     TArgsValidator,
     ToConvexReturnsValidator<UReturns>
   > {
-    const convexValidator = isZodSchema(validator)
+    const isZod = isZodSchema(validator);
+    const convexValidator = isZod
       ? (toConvexValidator(validator) as ToConvexReturnsValidator<UReturns>)
       : (validator as ToConvexReturnsValidator<UReturns>);
 
@@ -146,6 +149,7 @@ export class ConvexBuilderWithFunctionKind<
     >({
       ...this.def,
       returnsValidator: convexValidator,
+      zodReturnsSchema: isZod ? validator : undefined,
     });
   }
 

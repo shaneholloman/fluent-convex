@@ -303,3 +303,21 @@ describe("Handler uniqueness enforcement", () => {
     expect((builder as any).handler).toBeUndefined();
   });
 });
+
+describe("Zod runtime validation", () => {
+  test("should reject input that violates Zod refinements", async () => {
+    const t = convexTest(schema, modules);
+    // addPositiveNumber uses z.number().positive() — a negative value should be rejected
+    await expect(
+      t.mutation(api.myFunctions.addPositiveNumber, { value: -5 }),
+    ).rejects.toThrow();
+  });
+
+  test("should accept input that passes Zod refinements", async () => {
+    const t = convexTest(schema, modules);
+    const id = await t.mutation(api.myFunctions.addPositiveNumber, {
+      value: 42,
+    });
+    expect(id).toBeDefined();
+  });
+});

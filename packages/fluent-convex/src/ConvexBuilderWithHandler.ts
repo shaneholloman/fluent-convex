@@ -12,6 +12,7 @@ import {
 } from "convex/server";
 import type { ConvexMiddleware, AnyConvexMiddleware } from "./middleware";
 import { extend as extendBuilder } from "./extend";
+import { zodParse } from "./zod_support";
 import type {
   FunctionType,
   Context,
@@ -122,6 +123,12 @@ export class ConvexBuilderWithHandler<
    * of the chain (remaining middleware + handler). This allows middleware to
    * run code before and after downstream execution, catch errors, measure
    * timing, etc.
+   *
+   * When Zod schemas are present:
+   * - Args are validated with the full Zod schema (including refinements) before
+   *   entering the middleware chain.
+   * - The handler's return value is validated with the full Zod returns schema
+   *   (including refinements) after the handler executes.
    */
   private async _executeWithMiddleware(
     middlewares: readonly AnyConvexMiddleware[],
@@ -129,6 +136,12 @@ export class ConvexBuilderWithHandler<
     handler: (context: Context, args: any) => Promise<any>,
     args: any
   ): Promise<THandlerReturn> {
+    // Validate args with Zod schema if present (includes refinements)
+    const { zodArgsSchema, zodReturnsSchema } = this.def;
+    if (zodArgsSchema) {
+      zodParse(zodArgsSchema, args);
+    }
+
     let handlerResult: any;
 
     // Build a recursive chain where calling `next(ctx)` runs the next
@@ -147,6 +160,12 @@ export class ConvexBuilderWithHandler<
     };
 
     await createNext(0)(initialContext);
+
+    // Validate return value with Zod schema if present (includes refinements)
+    if (zodReturnsSchema) {
+      zodParse(zodReturnsSchema, handlerResult);
+    }
+
     return handlerResult;
   }
 
@@ -287,5 +306,37 @@ export class ConvexBuilderWithHandler<
     }[functionType];
 
     return registrationFn(config);
+  }
+}
+
+
+
+export const myQuery = convex
+  .query()
+  .extend(withMyPlugin())
+  .extend(withZod()) 
+  .myCustomMethod("hello") // comes from my-plugin      
+  .input(z.object({...}))  // comes from the zod plugin as it overwrote it last
+  .returns(z.object({...})) // comes from the zod plugin
+  .handler(...)
+  .public();
+
+where withMyPlugin() can return an object that lets us override the input builder:
+
+const withMyPlugin = <T extends FluentConvexBuilder>(builder: T) => {
+  return {
+    overrideInput: () => ... // does something to override the build in input
+    addMethods: {
+      myCustomMethod: (str: string) => {
+        ...
+      }
+    }
+  }
+}
+
+const withZod = <T extends FluentConvexBuilder>(builder: T) => {
+  return {
+    overrideInput: () => ... // overrides the does the zod input checks
+    overrideReturns: () =>  ... // overrides the returns
   }
 }

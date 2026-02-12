@@ -16,17 +16,25 @@ export function isZodSchema(value: any): value is z.ZodType {
 /**
  * Convert a Zod schema to a Convex validator.
  *
- * **Important:** Only the structural shape is converted (string, number, object
- * fields, etc.). Zod refinements (`.min()`, `.max()`, `.email()`, `.positive()`,
- * `.regex()`, etc.) are silently dropped — Convex validators have no equivalent.
- * This means refinements will run on the client (via Zod) but **not** on the
- * server (via Convex). If you need server-side validation of constraints, add
- * explicit checks in your handler.
+ * The structural shape is converted (string, number, object fields, etc.) for
+ * Convex's built-in validation. The original Zod schema is also preserved and
+ * used for full runtime validation (including refinements) before the handler
+ * executes.
  */
 export function toConvexValidator<T extends z.ZodType>(
   schema: T
 ): PropertyValidators | GenericValidator {
   return zodToConvex(schema as any) as any;
+}
+
+/**
+ * Parse a value using a Zod schema. This performs full Zod validation including
+ * all refinements (`.min()`, `.max()`, `.email()`, `.regex()`, etc.).
+ *
+ * Throws a ZodError if validation fails.
+ */
+export function zodParse(schema: unknown, value: unknown): unknown {
+  return (schema as z.ZodType).parse(value);
 }
 
 export type ValidatorInput =

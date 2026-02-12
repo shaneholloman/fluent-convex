@@ -54,7 +54,7 @@
     }
   },
   "dependencies": {
-    "convex-helpers": "^0.1.111"
+    "convex-helpers": "^0.1.112"
   },
   "devDependencies": {
     "@types/node": "^25.0.0",

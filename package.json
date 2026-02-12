@@ -14,11 +14,9 @@
     "test": "npm run test --workspaces --if-present",
     "dev:test": "npm run dev:test --workspace=packages/fluent-convex",
     "codegen": "npm run codegen --workspace=apps/example",
-    "check:all": "npm run build && npm run codegen && npm run typecheck && npm run test",
-    "postinstall": "patch-package"
+    "check:all": "npm run build && npm run codegen && npm run typecheck && npm run test"
   },
   "devDependencies": {
-    "patch-package": "^8.0.1",
     "prettier": "^3.5.3",
     "typescript": "~5.9.0"
   }

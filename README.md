@@ -357,23 +357,6 @@ When a function calls other functions via `api.*` in the same file, and those fu
 2. Move the calling function to a separate file
 3. Use `internal.*` from a different module
 
-## Documentation
-
-The **[live docs site](https://friendly-zebra-716.convex.site)** is an interactive showcase that demonstrates every feature with working live demos. The code snippets shown on the docs site are the actual source code powering the app -- imported via Vite `?raw` imports, so what you see is what runs.
-
-Sections:
-- [Getting Started](https://friendly-zebra-716.convex.site/) -- builder setup and overview
-- [Basics](https://friendly-zebra-716.convex.site/basics) -- queries, mutations, and the fluent chain
-- [Validation](https://friendly-zebra-716.convex.site/validation) -- property validators, object validators, and Zod schemas
-- [Middleware](https://friendly-zebra-716.convex.site/middleware) -- context-enrichment and onion middleware
-- [Reusable Chains](https://friendly-zebra-716.convex.site/reusable-chains) -- callable syntax and composability
-- [Zod Plugin](https://friendly-zebra-716.convex.site/zod-plugin) -- runtime refinement validation
-- [Custom Plugins](https://friendly-zebra-716.convex.site/custom-plugins) -- building your own plugins with `.extend()`
-
-
-
-The docs source lives in [`/apps/docs`](./apps/docs) and is auto-deployed on every push to `main`.
-
 ## Development
 
 This is a monorepo using npm workspaces:

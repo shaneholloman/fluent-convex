@@ -21,6 +21,20 @@
   }
 }
 
+/* Mobile sidebar slide-in animation */
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@utility animate-slide-in {
+  animation: slide-in-left 0.2s ease-out;
+}
+
 /* sugar-high syntax highlighting tokens */
 :root {
   --sh-class: #4ec9b0;

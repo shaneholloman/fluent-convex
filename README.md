@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="apps/docs/public/logo.png" alt="fluent-convex logo" width="120" />
+</p>
+
 # Fluent Convex
 
 A fluent API builder for Convex functions with middleware support, inspired by [oRPC](https://orpc.unnoq.com/).

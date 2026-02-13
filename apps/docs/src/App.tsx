@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useCallback } from "react";
 import { useRoute } from "./router";
 import { Header } from "./components/Header";
 import { Sidebar } from "./components/Sidebar";
@@ -46,11 +47,15 @@ function PageContent() {
 }
 
 export default function App() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const closeSidebar = useCallback(() => setSidebarOpen(false), []);
+  const toggleSidebar = useCallback(() => setSidebarOpen((o) => !o), []);
+
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
+      <Header onToggleSidebar={toggleSidebar} />
       <div className="flex flex-1">
-        <Sidebar />
+        <Sidebar open={sidebarOpen} onClose={closeSidebar} />
         <Content>
           <PageContent />
         </Content>

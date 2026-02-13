@@ -12,8 +12,6 @@ import { MiddlewareSection } from "./sections/MiddlewareSection";
 import { ReusableChainsSection } from "./sections/ReusableChainsSection";
 import { ZodSection } from "./sections/ZodSection";
 import { PluginSection } from "./sections/PluginSection";
-import { ActionsSection } from "./sections/ActionsSection";
-import { AuthSection } from "./sections/AuthSection";
 
 function PageContent() {
   const route = useRoute();
@@ -37,10 +35,6 @@ function PageContent() {
       return <ZodSection />;
     case "customPlugins":
       return <PluginSection />;
-    case "actions":
-      return <ActionsSection />;
-    case "auth":
-      return <AuthSection />;
     default:
       return <GettingStartedSection />;
   }

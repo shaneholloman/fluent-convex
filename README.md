@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="apps/docs/public/logo.png" alt="fluent-convex logo" width="120" />
-</p>
+![logo](apps/docs/public/logo.png)
 
 # Fluent Convex
 
@@ -11,6 +9,7 @@ A fluent API builder for Convex functions with middleware support, inspired by [
 ## Features
 
 - **Middleware support** - Compose reusable middleware for authentication, logging, and more ([docs](https://friendly-zebra-716.convex.site/middleware))
+- **Callable builders** - Define logic once, call it directly from other handlers, and register it multiple ways ([docs](https://friendly-zebra-716.convex.site/reusable-chains))
 - **Type-safe** - Full TypeScript support with type inference
 - **Fluent API** - Chain methods for a clean, readable syntax ([docs](https://friendly-zebra-716.convex.site/basics))
 - **Plugin system** - Extend with plugins like `fluent-convex/zod` for Zod schema support ([docs](https://friendly-zebra-716.convex.site/zod-plugin))
@@ -103,22 +102,45 @@ There are two main middleware patterns:
 - **Context-enrichment** -- adds new properties to the context (e.g. `ctx.user`)
 - **Onion (wrap)** -- runs code before *and* after the handler (e.g. timing, error handling)
 
-## Reusable Chains
+## Reusable Chains & Callables
 
-> See the **[Reusable Chains docs](https://friendly-zebra-716.convex.site/reusable-chains)** for callable syntax, stacking middleware, and the "define once, register multiple ways" pattern.
+> See the **[Reusable Chains docs](https://friendly-zebra-716.convex.site/reusable-chains)** for full examples with live demos.
 
-Because the builder is immutable, you can stop the chain at any point and reuse that partial builder later. A builder with a `.handler()` but no `.public()` is called a **callable** -- you can invoke it directly for testing or extend it with more middleware before registering.
+Because the builder is immutable, you can stop the chain at any point and reuse that partial builder later. A builder with a `.handler()` but no `.public()` / `.internal()` is called a **callable** -- a fully-typed function you can:
+
+1. **Call directly** from inside other handlers (no additional Convex function invocation)
+2. **Register** as a standalone Convex endpoint
+3. **Extend** with more middleware and register multiple ways
 
 ```ts
-// Define once
-const authedQuery = convex.query().use(authMiddleware);
+// 1. Define a callable - NOT yet registered with Convex
+const getNumbers = convex
+  .query()
+  .input({ count: v.number() })
+  .handler(async (ctx, args) => {
+    const rows = await ctx.db.query("numbers").order("desc").take(args.count);
+    return rows.map((r) => r.value);
+  });
 
-// Reuse everywhere
-export const listTasks = authedQuery
-  .input({})
-  .handler(async (ctx) => { /* ctx.user is typed! */ })
+// 2. Register it as a public query
+export const listNumbers = getNumbers.public();
+
+// 3. Call it directly from inside another handler - no additional function invocation!
+export const getNumbersWithTimestamp = convex
+  .query()
+  .input({ count: v.number() })
+  .handler(async (ctx, args) => {
+    const numbers = await getNumbers(ctx)(args); // <-- direct call
+    return { numbers, fetchedAt: Date.now() };
+  })
   .public();
+
+// 4. Register the same callable with different middleware
+export const listNumbersProtected = getNumbers.use(authMiddleware).public();
+export const listNumbersLogged = getNumbers.use(withLogging("logged")).public();
 ```
+
+The callable syntax is `callable(ctx)(args)` -- the first call passes the context (so the middleware chain runs with the right ctx), the second passes the validated arguments.
 
 ## Plugins
 
@@ -251,26 +273,6 @@ export const myQuery = convex
   .public();
 ```
 
-## Actions
-
-> See the **[Actions docs](https://friendly-zebra-716.convex.site/actions)** for live demos of seeding data and orchestrating queries.
-
-Actions work with the same fluent API. Define them with `.action()` and use middleware as normal:
-
-```ts
-export const seedNumbers = convex
-  .action()
-  .use(withLogging("seedNumbers"))
-  .input({ count: v.number() })
-  .handler(async (ctx, input) => {
-    for (let i = 0; i < input.count; i++) {
-      await ctx.runMutation(api.basics.addNumber, { value: Math.random() * 100 });
-    }
-    return { seeded: input.count };
-  })
-  .public();
-```
-
 ## Flexible Method Ordering
 
 The builder API is flexible about method ordering, allowing you to structure your code in the way that makes the most sense for your use case.
@@ -290,27 +292,36 @@ export const getNumbers = convex
   .public();
 ```
 
-### Callable Builders (Testing)
+### Callable Builders
 
-Before registering a function with `.public()` or `.internal()`, the builder is **callable**, making it easy to test your functions:
+Before registering a function with `.public()` or `.internal()`, the builder is **callable** -- you can invoke it directly from other handlers (see [Reusable Chains](#reusable-chains--callables) above) or use it in tests:
 
 ```ts
-// Create a callable query (not yet registered)
-const testQuery = convex
+// A callable (not yet registered)
+const getDouble = convex
   .query()
   .input({ count: v.number() })
   .handler(async (context, input) => {
     return { doubled: input.count * 2 };
   });
 
-// You can call it directly for testing
+// Call it from another handler
+export const tripled = convex
+  .query()
+  .input({ count: v.number() })
+  .handler(async (ctx, input) => {
+    const { doubled } = await getDouble(ctx)(input);
+    return { tripled: doubled + input.count };
+  })
+  .public();
+
+// Or call it directly in tests
 const mockContext = {} as any;
-const result = await testQuery(mockContext)({ count: 5 });
+const result = await getDouble(mockContext)({ count: 5 });
 console.log(result); // { doubled: 10 }
 
-// Once registered, it's no longer callable
-export const doubleNumber = testQuery.public();
-// doubleNumber(mockContext)({ count: 5 }); // TypeScript error - not callable
+// Register it when you also need it as a standalone endpoint
+export const doubleNumber = getDouble.public();
 ```
 
 ### Method Ordering Rules
@@ -358,8 +369,8 @@ Sections:
 - [Reusable Chains](https://friendly-zebra-716.convex.site/reusable-chains) -- callable syntax and composability
 - [Zod Plugin](https://friendly-zebra-716.convex.site/zod-plugin) -- runtime refinement validation
 - [Custom Plugins](https://friendly-zebra-716.convex.site/custom-plugins) -- building your own plugins with `.extend()`
-- [Actions](https://friendly-zebra-716.convex.site/actions) -- orchestrating queries and mutations
-- [Auth Middleware](https://friendly-zebra-716.convex.site/auth) -- reusable auth patterns
+
+
 
 The docs source lives in [`/apps/docs`](./apps/docs) and is auto-deployed on every push to `main`.
 

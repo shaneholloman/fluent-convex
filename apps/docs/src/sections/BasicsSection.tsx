@@ -32,15 +32,15 @@ export function BasicsSection() {
           a validated <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">input</code> object.
         </p>
       </Prose>
-      <CodeBlock source={basicsSource} region="listNumbers" title="convex/basics.ts — a simple query" file="convex/basics.ts" />
-      <CodeBlock source={basicsSource} region="addNumber" title="convex/basics.ts — a simple mutation" file="convex/basics.ts" />
+      <CodeBlock source={basicsSource} region="listNumbers" title="convex/basics.ts - a simple query" file="convex/basics.ts" />
+      <CodeBlock source={basicsSource} region="addNumber" title="convex/basics.ts - a simple mutation" file="convex/basics.ts" />
       <DemoCard title="Live demo">
         <p className="text-sm">
           Numbers:{" "}
           {result
             ? result.numbers.length > 0
               ? result.numbers.join(", ")
-              : "(none yet — click the button)"
+              : "(none yet - click the button)"
             : "loading..."}
         </p>
         <div className="flex gap-2">

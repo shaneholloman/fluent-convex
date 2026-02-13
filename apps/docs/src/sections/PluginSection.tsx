@@ -34,7 +34,7 @@ export function PluginSection() {
           method. Calling it wraps the function in an onion middleware that logs start/end times.
         </p>
       </Prose>
-      <CodeBlock source={pluginSource} region="TimedBuilder" title="convex/plugin.ts — defining a plugin" file="convex/plugin.ts" />
+      <CodeBlock source={pluginSource} region="TimedBuilder" title="convex/plugin.ts - defining a plugin" file="convex/plugin.ts" />
 
       <AnchorHeading id="using-the-plugin" className="text-xl font-semibold">Using the plugin</AnchorHeading>
       <Prose>
@@ -44,7 +44,7 @@ export function PluginSection() {
           then call your custom method. The rest of the chain works as normal.
         </p>
       </Prose>
-      <CodeBlock source={pluginSource} region="timedQuery" title="convex/plugin.ts — using the plugin" file="convex/plugin.ts" />
+      <CodeBlock source={pluginSource} region="timedQuery" title="convex/plugin.ts - using the plugin" file="convex/plugin.ts" />
       <DemoCard title="Live demo">
         <div className="flex gap-2 items-end">
           <div className="flex flex-col gap-1">

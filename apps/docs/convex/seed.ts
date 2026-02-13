@@ -1,5 +1,5 @@
 /**
- * seed.ts — Hourly cron job to reset demo data.
+ * seed.ts - Hourly cron job to reset demo data.
  *
  * Clears the numbers and tasks tables, then inserts a curated set
  * of example data so the live demos always look presentable.

@@ -1,11 +1,11 @@
 /**
- * middleware.ts — Reusable middleware definitions for fluent-convex.
+ * middleware.ts - Reusable middleware definitions for fluent-convex.
  *
  * Middleware transforms the context object before (and optionally after)
  * the handler runs. There are two main patterns:
  *
- *   1. Context-enrichment — adds new properties to the context
- *   2. Onion (wrap) — runs code before AND after the handler
+ *   1. Context-enrichment - adds new properties to the context
+ *   2. Onion (wrap) - runs code before AND after the handler
  */
 
 import { convex } from "./lib";

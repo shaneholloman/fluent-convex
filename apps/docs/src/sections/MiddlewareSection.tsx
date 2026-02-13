@@ -1,6 +1,8 @@
+import { Authenticated, Unauthenticated } from "convex/react";
 import { CodeBlock } from "../components/CodeBlock";
-import { AnchorHeading, Prose } from "../components/ui";
-import { middlewareSource, chainsSource } from "../sources";
+import { AnchorHeading, Prose, DemoCard } from "../components/ui";
+import { middlewareSource, chainsSource, authedSource } from "../sources";
+import { TaskManager, SignInForm } from "../components/Auth";
 
 export function MiddlewareSection() {
   return (
@@ -8,18 +10,18 @@ export function MiddlewareSection() {
       <h2 className="text-3xl font-bold">Middleware</h2>
       <Prose>
         <p>
-          Middleware is the heart of fluent-convex. It lets you compose reusable logic that runs
-          before (and optionally after) your handler. There are two main patterns:
+          Middleware lets you compose reusable logic that runs before (and optionally after) your
+          handler. There are two main patterns:
         </p>
         <ul className="list-disc pl-6 flex flex-col gap-2">
           <li>
-            <strong>Context-enrichment</strong> — transforms the context object by adding new
+            <strong>Context-enrichment</strong> - transforms the context object by adding new
             properties. The middleware calls{" "}
             <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">next(&#123; ...context, user &#125;)</code>{" "}
             and everything downstream sees the new property with full type safety.
           </li>
           <li>
-            <strong>Onion (wrap)</strong> — runs code both <em>before</em> and <em>after</em> the
+            <strong>Onion (wrap)</strong> - runs code both <em>before</em> and <em>after</em> the
             rest of the chain. Because{" "}
             <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">next()</code> awaits
             the downstream middleware + handler, you can measure timing, catch errors, or
@@ -46,10 +48,10 @@ export function MiddlewareSection() {
       <CodeBlock source={middlewareSource} region="addTimestamp" title="Simple enrichment: addTimestamp" file="convex/middleware.ts" />
       <Prose>
         <p>
-          Onion middleware is especially powerful. Because it wraps the handler, it can measure
+          Because onion middleware wraps the handler, it can measure
           timing, catch errors, log results, or retry. The{" "}
           <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">withLogging</code>{" "}
-          example below is parameterized — you pass an operation name and get back a middleware
+          example below is parameterized - you pass an operation name and get back a middleware
           instance:
         </p>
       </Prose>
@@ -61,12 +63,35 @@ export function MiddlewareSection() {
           Once defined, you apply middleware with{" "}
           <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">.use()</code>. You can
           chain multiple{" "}
-          <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">.use()</code> calls —
+          <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">.use()</code> calls -
           each one merges its context additions with the previous ones. The handler receives the
           combined context with everything fully typed.
         </p>
       </Prose>
-      <CodeBlock source={chainsSource} region="usingMiddleware" title="convex/chains.ts — single and stacked .use() calls" file="convex/chains.ts" />
+      <CodeBlock source={chainsSource} region="usingMiddleware" title="convex/chains.ts - single and stacked .use() calls" file="convex/chains.ts" />
+
+      <AnchorHeading id="auth-middleware" className="text-xl font-semibold mt-4">Auth middleware in practice</AnchorHeading>
+      <Prose>
+        <p>
+          A common pattern is to bake auth middleware into reusable chains like{" "}
+          <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">authedQuery</code> and{" "}
+          <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">authedMutation</code>.
+          Every function built from them automatically requires a logged-in user and has{" "}
+          <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">ctx.user</code>{" "}
+          available, fully typed, no casting needed.
+        </p>
+      </Prose>
+      <CodeBlock source={authedSource} region="reusableAuthChains" title="convex/authed.ts - defining reusable auth chains" file="convex/authed.ts" />
+      <CodeBlock source={authedSource} region="listTasks" title="convex/authed.ts - a query using authedQuery" file="convex/authed.ts" />
+      <CodeBlock source={authedSource} region="addTask" title="convex/authed.ts - a mutation using authedMutation" file="convex/authed.ts" />
+      <DemoCard title="Live demo - sign in to manage tasks">
+        <Authenticated>
+          <TaskManager />
+        </Authenticated>
+        <Unauthenticated>
+          <SignInForm />
+        </Unauthenticated>
+      </DemoCard>
     </section>
   );
 }

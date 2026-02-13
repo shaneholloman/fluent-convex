@@ -1,5 +1,5 @@
 /**
- * basics.ts — The simplest fluent-convex functions.
+ * basics.ts - The simplest fluent-convex functions.
  *
  * These examples show the core API without any middleware or plugins.
  * Compare them side-by-side with their standard Convex equivalents

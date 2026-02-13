@@ -17,7 +17,7 @@ export function ActionsSection() {
       <h2 className="text-3xl font-bold">Actions</h2>
       <Prose>
         <p>
-          Actions are Convex functions that can talk to the outside world — call external APIs, run
+          Actions are Convex functions that can talk to the outside world - call external APIs, run
           long computations, or orchestrate multiple queries and mutations. In fluent-convex, you
           define them with{" "}
           <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">.action()</code> and
@@ -32,8 +32,8 @@ export function ActionsSection() {
           HTTP requests.
         </p>
       </Prose>
-      <CodeBlock source={actionsSource} region="seedNumbers" title="convex/actions.ts — action with logging middleware" file="convex/actions.ts" />
-      <CodeBlock source={actionsSource} region="getSnapshot" title="convex/actions.ts — action calling a query" file="convex/actions.ts" />
+      <CodeBlock source={actionsSource} region="seedNumbers" title="convex/actions.ts - action with logging middleware" file="convex/actions.ts" />
+      <CodeBlock source={actionsSource} region="getSnapshot" title="convex/actions.ts - action calling a query" file="convex/actions.ts" />
       <DemoCard title="Live demo">
         <div className="flex gap-2 items-end flex-wrap">
           <div className="flex flex-col gap-1">

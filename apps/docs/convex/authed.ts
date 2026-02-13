@@ -1,5 +1,5 @@
 /**
- * authed.ts — Auth-gated functions using reusable chains.
+ * authed.ts - Auth-gated functions using reusable chains.
  *
  * This file demonstrates the "reusable chain" pattern: we create
  * `authedQuery` and `authedMutation` by baking authMiddleware into
@@ -12,7 +12,7 @@ import { convex } from "./lib";
 import { authMiddleware } from "./middleware";
 
 // #region reusableAuthChains
-// Reusable partial chains — pre-configure middleware so downstream
+// Reusable partial chains - pre-configure middleware so downstream
 // consumers don't need to repeat `.use(authMiddleware)` everywhere.
 const authedQuery = convex.query().use(authMiddleware);
 const authedMutation = convex.mutation().use(authMiddleware);
@@ -22,7 +22,7 @@ const authedMutation = convex.mutation().use(authMiddleware);
 export const listTasks = authedQuery
   .input({})
   .handler(async (ctx) => {
-    // ctx.user is available from authMiddleware — fully typed!
+    // ctx.user is available from authMiddleware - fully typed!
     const tasks = await ctx.db.query("tasks").collect();
     return {
       viewer: ctx.user.name,

@@ -8,6 +8,4 @@ export const { RouteProvider, useRoute, routes } = createRouter({
   reusableChains: defineRoute("/reusable-chains"),
   zodPlugin: defineRoute("/zod-plugin"),
   customPlugins: defineRoute("/custom-plugins"),
-  actions: defineRoute("/actions"),
-  auth: defineRoute("/auth"),
 });

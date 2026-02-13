@@ -1,10 +1,10 @@
 /**
- * validators.ts — Input & return validation showcase.
+ * validators.ts - Input & return validation showcase.
  *
  * fluent-convex supports three flavors of validation:
- *   1. Property validators  — `{ count: v.number() }`
- *   2. Object validators    — `v.object({ count: v.number() })`
- *   3. Zod schemas (plugin) — `z.object({ count: z.number().min(1) })`
+ *   1. Property validators  - `{ count: v.number() }`
+ *   2. Object validators    - `v.object({ count: v.number() })`
+ *   3. Zod schemas (plugin) - `z.object({ count: z.number().min(1) })`
  *
  * The Zod plugin enables full runtime refinement validation (.min(),
  * .max(), .email(), etc.) on top of Convex's structural validation.
@@ -81,7 +81,7 @@ export const listWithZod = convex
 // #endregion
 
 // ---------------------------------------------------------------------------
-// 4. Zod with refinements — runtime validation that Convex alone can't do
+// 4. Zod with refinements - runtime validation that Convex alone can't do
 // ---------------------------------------------------------------------------
 
 // #region zodRefinements

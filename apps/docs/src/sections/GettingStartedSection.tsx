@@ -58,7 +58,7 @@ export function GettingStartedSection() {
       </Prose>
       <div className="grid md:grid-cols-2 gap-4">
         <CodeBlock source={libSource} region="builder" title="convex/lib.ts" file="convex/lib.ts" />
-        <CodeBlock source={authedSource} region="reusableAuthChains" title="convex/authed.ts — reusable chains" file="convex/authed.ts" />
+        <CodeBlock source={authedSource} region="reusableAuthChains" title="convex/authed.ts - reusable chains" file="convex/authed.ts" />
       </div>
       <InfoCallout>
         Every code snippet on this page is the <strong>actual source code</strong> powering this

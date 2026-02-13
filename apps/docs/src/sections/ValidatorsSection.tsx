@@ -22,7 +22,7 @@ export function ValidatorsSection() {
         </p>
         <p>
           Here is the same query written three different ways. Each one fetches the most recent
-          numbers from the database — the only difference is how the input is validated.
+          numbers from the database - the only difference is how the input is validated.
         </p>
       </Prose>
       <div className="flex flex-col gap-4">
@@ -46,7 +46,7 @@ export function ValidatorsSection() {
               <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">v.object()</code>{" "}
               validator directly. Pairing it with{" "}
               <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">.returns()</code>{" "}
-              gives you explicit return type validation — Convex will check the output matches at
+              gives you explicit return type validation - Convex will check the output matches at
               runtime.
             </p>
           </Prose>
@@ -71,7 +71,7 @@ export function ValidatorsSection() {
         <CodeBlock source={validatorsSource} region="zodValidation" title="Zod schemas via .extend(WithZod)" file="convex/validators.ts" />
       </div>
 
-      <DemoCard title="Live demo — all three return the same data">
+      <DemoCard title="Live demo - all three return the same data">
         <div className="grid grid-cols-3 gap-4 text-sm">
           <div>
             <Badge>property</Badge>

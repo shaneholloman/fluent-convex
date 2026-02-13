@@ -47,7 +47,7 @@ export function ZodSection() {
           on the builder chain.
         </p>
         <p>
-          What makes this special is <strong>full runtime validation</strong>. Convex&apos;s built-in
+          The Zod plugin adds <strong>full runtime validation</strong>. Convex&apos;s built-in
           validators only check structural types (is this a number? is this a string?). Zod
           refinements like{" "}
           <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">.positive()</code>,{" "}
@@ -63,12 +63,12 @@ export function ZodSection() {
       <Prose>
         <p>
           The example below requires the value to be a positive number. Try submitting a negative
-          number or zero in the live demo — the server will reject it with a Zod validation error.
+          number or zero in the live demo - the server will reject it with a Zod validation error.
         </p>
       </Prose>
       <CodeBlock source={validatorsSource} region="zodRefinements" title="Zod refinements (.positive(), .min(), .max())" file="convex/validators.ts" />
 
-      <DemoCard title="Live demo — try a negative number">
+      <DemoCard title="Live demo - try a negative number">
         <div className="flex gap-2 items-end flex-wrap">
           <div className="flex flex-col gap-1">
             <label className="text-xs text-slate-500">Value (must be positive)</label>

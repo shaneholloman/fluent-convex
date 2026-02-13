@@ -1,9 +1,9 @@
 /**
- * plugin.ts — Custom plugin demo using the .extend() system.
+ * plugin.ts - Custom plugin demo using the .extend() system.
  *
  * Plugins let you add custom methods to the builder chain. This
  * example creates a TimedBuilder that adds a `.withTiming(name)`
- * method — it automatically wraps any function with execution
+ * method - it automatically wraps any function with execution
  * timing via onion middleware.
  *
  * The key is overriding `_clone()` so the plugin type survives

@@ -1,15 +1,15 @@
 /**
- * chains.ts — Reusable chains and the callable syntax.
+ * chains.ts - Reusable chains and the callable syntax.
  *
- * This file demonstrates the most powerful pattern in fluent-convex:
- * building "library functions" that can be reused, extended, and
- * tested BEFORE they are registered with .public() or .internal().
+ * Build "library functions"
+ * that can be reused, extended, and called BEFORE they are registered
+ * with .public() or .internal().
  *
  * Key concepts:
  *   - A builder with a handler but NO .public()/.internal() is "callable"
- *   - Callable builders can be called directly for testing
+ *   - Callable builders can be invoked directly inside other handlers
+ *   - The same callable can also be registered as a standalone function
  *   - You can add more middleware to a callable and then register it
- *   - The same base function can be registered multiple ways
  */
 
 import { v } from "convex/values";
@@ -17,11 +17,77 @@ import { convex } from "./lib";
 import { authMiddleware, addTimestamp, withLogging } from "./middleware";
 
 // ---------------------------------------------------------------------------
+// Pattern 1: Callable - define logic, call it everywhere
+// ---------------------------------------------------------------------------
+
+// #region callable
+// This callable is NOT registered - it's a reusable building block.
+// Think of it like a helper function, but with full middleware support.
+const getNumbers = convex
+  .query()
+  .input({ count: v.number() })
+  .handler(async (ctx, args) => {
+    const rows = await ctx.db.query("numbers").order("desc").take(args.count);
+    return rows.map((r) => r.value);
+  });
+
+// Register it as a public query - clients can call this over the network.
+export const listNumbers = getNumbers.public();
+// #endregion
+
+// ---------------------------------------------------------------------------
+// Pattern 2: Call a callable inside another handler
+// ---------------------------------------------------------------------------
+
+// #region callFromHandler
+// Because `getNumbers` is callable, we can invoke it directly
+// inside other handlers. No additional Convex function invocation,
+// full type safety on args and return value.
+export const getNumbersWithTimestamp = convex
+  .query()
+  .input({ count: v.number() })
+  .handler(async (ctx, args) => {
+    // Call the unregistered callable directly - reuses the same logic
+    const numbers = await getNumbers(ctx)(args);
+
+    return {
+      numbers,
+      fetchedAt: Date.now(),
+    };
+  })
+  .public();
+// #endregion
+
+// ---------------------------------------------------------------------------
+// Pattern 3: Register the same callable multiple ways
+// ---------------------------------------------------------------------------
+
+// #region registerMultipleWays
+// The original callable is unchanged - we can register it again
+// with different middleware stacked on top.
+
+// Public, with logging
+export const listNumbersLogged = getNumbers
+  .use(withLogging("listNumbersLogged"))
+  .public();
+
+// Protected behind auth
+export const listNumbersProtected = getNumbers
+  .use(authMiddleware)
+  .public();
+
+// Internal only (server-to-server), with timestamp middleware
+export const listNumbersInternal = getNumbers
+  .use(addTimestamp)
+  .internal();
+// #endregion
+
+// ---------------------------------------------------------------------------
 // Using middleware with .use()
 // ---------------------------------------------------------------------------
 
 // #region usingMiddleware
-// Single middleware — adds `context.user`
+// Single middleware - adds `context.user`
 export const authedNumbers = convex
   .query()
   .use(authMiddleware)
@@ -35,7 +101,7 @@ export const authedNumbers = convex
   })
   .public();
 
-// Multiple middleware — each .use() merges its context additions
+// Multiple middleware - each .use() merges its context additions
 export const loggedAuthedNumbers = convex
   .query()
   .use(withLogging("loggedAuthedNumbers"))
@@ -55,33 +121,7 @@ export const loggedAuthedNumbers = convex
 // #endregion
 
 // ---------------------------------------------------------------------------
-// Pattern 1: Define once, register multiple ways
-// ---------------------------------------------------------------------------
-
-// #region reusableBase
-// This callable is NOT yet registered — it's a reusable building block.
-const listNumbersBase = convex
-  .query()
-  .input({ count: v.number() })
-  .handler(async (ctx, input) => {
-    const numbers = await ctx.db
-      .query("numbers")
-      .order("desc")
-      .take(input.count);
-    return { numbers: numbers.map((n) => n.value) };
-  });
-
-// Register it publicly — anyone can call this
-export const listNumbers = listNumbersBase.public();
-
-// Add auth middleware on top, then register — same logic, now protected
-export const listNumbersProtected = listNumbersBase
-  .use(authMiddleware)
-  .public();
-// #endregion
-
-// ---------------------------------------------------------------------------
-// Pattern 2: Stacking middleware on a callable
+// Pattern: Stacking middleware on a callable
 // ---------------------------------------------------------------------------
 
 // #region stackedMiddleware
@@ -103,37 +143,5 @@ const listWithMetadata = convex
 export const listNumbersWithMetadata = listWithMetadata
   .use(withLogging("listNumbersWithMetadata"))
   .use(addTimestamp)
-  .public();
-// #endregion
-
-// ---------------------------------------------------------------------------
-// Pattern 3: Middleware AFTER handler
-// ---------------------------------------------------------------------------
-
-// #region middlewareAfterHandler
-// You can add middleware after defining the handler.
-// The middleware still runs BEFORE the handler at runtime.
-export const queryWithPostHandlerMiddleware = convex
-  .query()
-  .input({ count: v.number() })
-  .handler(async (ctx, input) => {
-    const numbers = await ctx.db
-      .query("numbers")
-      .order("desc")
-      .take(input.count);
-    return {
-      numbers: numbers.map((n) => n.value),
-      // This will be set by middleware added below
-      requestId: (ctx as any).requestId as string,
-    };
-  })
-  .use(
-    convex.query().createMiddleware(async (ctx, next) => {
-      return next({
-        ...ctx,
-        requestId: `req-${Math.random().toString(36).slice(2, 8)}`,
-      });
-    })
-  )
   .public();
 // #endregion

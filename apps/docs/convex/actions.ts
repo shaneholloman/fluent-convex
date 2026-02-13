@@ -1,5 +1,5 @@
 /**
- * actions.ts — Convex actions built with fluent-convex.
+ * actions.ts - Convex actions built with fluent-convex.
  *
  * Actions can call external APIs and run other Convex functions via
  * context.runQuery() / context.runMutation(). They're perfect for

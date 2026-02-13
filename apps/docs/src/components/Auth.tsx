@@ -93,60 +93,45 @@ export function TaskManager() {
 
 export function SignInForm() {
   const { signIn } = useAuthActions();
-  const [flow, setFlow] = useState<"signIn" | "signUp">("signIn");
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const demoLogin = () => {
+    setError(null);
+    setLoading(true);
+    const formData = new FormData();
+    formData.set("email", "demo@fluent-convex.dev");
+    formData.set("password", "demodemo");
+    formData.set("flow", "signUp");
+    // Try sign-up first (creates the account if it doesn't exist),
+    // fall back to sign-in if the account already exists.
+    void signIn("password", formData)
+      .catch(() => {
+        formData.set("flow", "signIn");
+        return signIn("password", formData);
+      })
+      .catch((err: Error) => setError(err.message))
+      .finally(() => setLoading(false));
+  };
 
   return (
-    <div className="flex flex-col gap-4 max-w-sm">
+    <div className="flex flex-col gap-3 max-w-sm">
       <p className="text-sm text-slate-500">
         Sign in to try the authenticated task manager demo.
       </p>
-      <form
-        className="flex flex-col gap-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          setError(null);
-          const formData = new FormData(e.target as HTMLFormElement);
-          formData.set("flow", flow);
-          void signIn("password", formData).catch((err) => {
-            setError(err.message);
-          });
-        }}
+      <button
+        type="button"
+        disabled={loading}
+        onClick={demoLogin}
+        className="text-sm px-4 py-2 rounded-md font-medium bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer disabled:opacity-50"
       >
-        <input
-          className="bg-light dark:bg-dark border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm"
-          type="email"
-          name="email"
-          placeholder="Email"
-        />
-        <input
-          className="bg-light dark:bg-dark border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm"
-          type="password"
-          name="password"
-          placeholder="Password"
-        />
-        <button
-          type="submit"
-          className="text-sm px-4 py-2 rounded-md font-medium bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer"
-        >
-          {flow === "signIn" ? "Sign in" : "Sign up"}
-        </button>
-        <p className="text-xs">
-          {flow === "signIn" ? "No account? " : "Have an account? "}
-          <button
-            type="button"
-            className="underline hover:no-underline cursor-pointer"
-            onClick={() => setFlow(flow === "signIn" ? "signUp" : "signIn")}
-          >
-            {flow === "signIn" ? "Sign up" : "Sign in"}
-          </button>
+        {loading ? "Signing in..." : "Try with demo account"}
+      </button>
+      {error && (
+        <p className="text-sm text-red-500 bg-red-500/10 border border-red-500/30 rounded px-3 py-2">
+          {error}
         </p>
-        {error && (
-          <p className="text-sm text-red-500 bg-red-500/10 border border-red-500/30 rounded px-3 py-2">
-            {error}
-          </p>
-        )}
-      </form>
+      )}
     </div>
   );
 }

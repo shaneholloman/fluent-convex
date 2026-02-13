@@ -1,6 +1,6 @@
 {
   "name": "fluent-convex",
-  "version": "0.12.2",
+  "version": "0.12.3",
   "description": "A fluent API builder for Convex functions with middleware support, inspired by oRPC",
   "type": "module",
   "main": "./dist/index.js",
@@ -44,6 +44,7 @@
   "publishConfig": {
     "access": "public"
   },
+  "homepage": "https://friendly-zebra-716.convex.site/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mikecann/fluent-convex.git"

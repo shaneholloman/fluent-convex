@@ -58,7 +58,7 @@ describe("$context() consistency", () => {
         return context.user.name;
       });
 
-    const result = await fn({} as any)({});
+    const result = await fn({} as any, {});
     expect(result).toBe("Alice");
   });
 });

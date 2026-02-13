@@ -201,8 +201,9 @@ describe("WithZod Callable Builder", () => {
     // Should be callable
     assertType<
       (
-        context: any
-      ) => (args: { count: number }) => Promise<{ count: number }>
+        context: any,
+        args: { count: number }
+      ) => Promise<{ count: number }>
     >(callableQuery);
   });
 });

@@ -222,7 +222,7 @@ describe("Builder Core", () => {
 
       // Should be callable
       assertType<
-        (context: any) => (args: { count: number }) => Promise<string>
+        (context: any, args: { count: number }) => Promise<string>
       >(nonRegisteredQuery);
     });
 
@@ -308,10 +308,9 @@ describe("Builder Core", () => {
       // Should still be callable after middleware
       assertType<
         (
-          context: any
-        ) => (args: {
-          count: number;
-        }) => Promise<{ count: number; userId: string }>
+          context: any,
+          args: { count: number }
+        ) => Promise<{ count: number; userId: string }>
       >(callableQuery);
     });
 
@@ -348,8 +347,9 @@ describe("Builder Core", () => {
       // Should still be callable after multiple middleware
       assertType<
         (
-          context: any
-        ) => (args: { count: number }) => Promise<{ count: number }>
+          context: any,
+          args: { count: number }
+        ) => Promise<{ count: number }>
       >(callableQuery);
     });
 
@@ -362,7 +362,7 @@ describe("Builder Core", () => {
         });
 
       // Should be callable
-      assertType<(context: any) => (args: { value: number }) => Promise<any>>(
+      assertType<(context: any, args: { value: number }) => Promise<any>>(
         callableMutation
       );
     });
@@ -377,7 +377,7 @@ describe("Builder Core", () => {
 
       // Should be callable
       assertType<
-        (context: any) => (args: { url: string }) => Promise<{ url: string }>
+        (context: any, args: { url: string }) => Promise<{ url: string }>
       >(callableAction);
     });
 
@@ -398,11 +398,12 @@ describe("Builder Core", () => {
       // Should be callable
       assertType<
         (
-          context: any
-        ) => (args: {
-          name?: string;
-          count?: number;
-        }) => Promise<{ name?: string; count?: number }>
+          context: any,
+          args: {
+            name?: string;
+            count?: number;
+          }
+        ) => Promise<{ name?: string; count?: number }>
       >(callableQuery);
     });
 
@@ -422,8 +423,9 @@ describe("Builder Core", () => {
       // Should be callable
       assertType<
         (
-          context: any
-        ) => (args: { count: number }) => Promise<{ numbers: number[] }>
+          context: any,
+          args: { count: number }
+        ) => Promise<{ numbers: number[] }>
       >(callableQuery);
     });
 
@@ -435,8 +437,9 @@ describe("Builder Core", () => {
       // Should be callable
       assertType<
         (
-          context: any
-        ) => (args: Record<never, never>) => Promise<{ success: boolean }>
+          context: any,
+          args: Record<never, never>
+        ) => Promise<{ success: boolean }>
       >(callableQuery);
     });
 
@@ -451,8 +454,9 @@ describe("Builder Core", () => {
       // Before .public(), should be callable
       assertType<
         (
-          context: any
-        ) => (args: { count: number }) => Promise<{ count: number }>
+          context: any,
+          args: { count: number }
+        ) => Promise<{ count: number }>
       >(callableQuery);
 
       const registeredQuery = callableQuery.public();
@@ -471,7 +475,7 @@ describe("Builder Core", () => {
         });
 
       // Before .internal(), should be callable
-      assertType<(context: any) => (args: { value: number }) => Promise<any>>(
+      assertType<(context: any, args: { value: number }) => Promise<any>>(
         callableMutation
       );
 

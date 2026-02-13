@@ -173,7 +173,7 @@ describe("Extensibility", () => {
     console.log("Keys:", Object.keys(handlerBuilder));
 
     // The result should be callable
-    const result = await handlerBuilder({} as any)({ message: "hello" });
+    const result = await handlerBuilder({} as any, { message: "hello" });
     expect(result).toBe("LOG: hello");
   });
 
@@ -187,7 +187,7 @@ describe("Extensibility", () => {
       return args.defaultField;
     });
 
-    const result = await chained({} as any)({ defaultField: "test" });
+    const result = await chained({} as any, { defaultField: "test" });
     expect(result).toBe("test");
   });
 
@@ -209,7 +209,7 @@ describe("Extensibility", () => {
         return `${args.defaultField}-${ctx.extra}`;
       });
 
-    const result = await chained({} as any)({ defaultField: "value" });
+    const result = await chained({} as any, { defaultField: "value" });
     expect(result).toBe("value-data");
   });
 

@@ -54,10 +54,9 @@ export function ReusableChainsSection() {
       <CodeBlock source={chainsSource} region="callFromHandler" title="convex/chains.ts - calling a callable inside another handler" file="convex/chains.ts" />
       <InfoCallout>
         The syntax is{" "}
-        <code className="bg-sky-100 dark:bg-sky-900/50 px-1 py-0.5 rounded text-sm">callable(ctx)(args)</code>.
-        The first call passes the context, the second passes the validated arguments. This is
-        curried so that the callable can run its full middleware chain with the correct context,
-        then execute the handler with the provided args.
+        <code className="bg-sky-100 dark:bg-sky-900/50 px-1 py-0.5 rounded text-sm">callable(ctx, args)</code>.
+        The first argument passes the context (so the middleware chain runs with the correct ctx),
+        the second passes the validated arguments. This mirrors the handler signature shape.
       </InfoCallout>
 
       <AnchorHeading id="register-multiple-ways" className="text-xl font-semibold">Register the same callable multiple ways</AnchorHeading>

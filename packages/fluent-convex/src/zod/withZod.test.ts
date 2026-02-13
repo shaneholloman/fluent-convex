@@ -83,7 +83,7 @@ describe("WithZod plugin", () => {
         return { result: input.count * 2 };
       });
 
-    const result = await fn({} as any)({ count: 5 });
+    const result = await fn({} as any, { count: 5 });
     expect(result).toEqual({ result: 10 });
   });
 
@@ -96,7 +96,7 @@ describe("WithZod plugin", () => {
         return { numbers: [1, 2, 3] };
       });
 
-    const result = await fn({} as any)({});
+    const result = await fn({} as any, {});
     expect(result).toEqual({ numbers: [1, 2, 3] });
   });
 
@@ -110,11 +110,11 @@ describe("WithZod plugin", () => {
       });
 
     // Valid input should pass
-    const result = await fn({} as any)({ count: 5 });
+    const result = await fn({} as any, { count: 5 });
     expect(result).toBe(5);
 
     // Invalid input should throw
-    await expect(fn({} as any)({ count: -1 })).rejects.toThrow();
+    await expect(fn({} as any, { count: -1 })).rejects.toThrow();
   });
 
   it("should validate Zod returns refinements at runtime", async () => {
@@ -126,7 +126,7 @@ describe("WithZod plugin", () => {
         return -1; // This should fail validation
       });
 
-    await expect(fn({} as any)({})).rejects.toThrow();
+    await expect(fn({} as any, {})).rejects.toThrow();
   });
 
   it("should work with plain Convex validators when using WithZod", async () => {
@@ -138,7 +138,7 @@ describe("WithZod plugin", () => {
         return input.count;
       });
 
-    const result = await fn({} as any)({ count: 42 });
+    const result = await fn({} as any, { count: 42 });
     expect(result).toBe(42);
   });
 
@@ -157,7 +157,7 @@ describe("WithZod plugin", () => {
         return `${input.name}-${ctx.extra}`;
       });
 
-    const result = await fn({} as any)({ name: "test" });
+    const result = await fn({} as any, { name: "test" });
     expect(result).toBe("test-data");
   });
 
@@ -175,6 +175,6 @@ describe("WithZod plugin", () => {
         return input.name;
       });
 
-    await expect(fn({} as any)({ name: "" })).rejects.toThrow();
+    await expect(fn({} as any, { name: "" })).rejects.toThrow();
   });
 });

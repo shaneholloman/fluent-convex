@@ -107,7 +107,7 @@ describe("middleware error propagation", () => {
       .use(failing)
       .handler(async () => "should not reach");
 
-    await expect(fn({} as any)({})).rejects.toThrow(
+    await expect(fn({} as any, {})).rejects.toThrow(
       "middleware failed before next"
     );
   });
@@ -123,7 +123,7 @@ describe("middleware error propagation", () => {
       .use(failsAfter)
       .handler(async () => "handler ran");
 
-    await expect(fn({} as any)({})).rejects.toThrow(
+    await expect(fn({} as any, {})).rejects.toThrow(
       "middleware failed after next"
     );
   });
@@ -159,7 +159,7 @@ describe("middleware error propagation", () => {
         throw new Error("boom");
       });
 
-    await expect(fn({} as any)({})).rejects.toThrow("boom");
+    await expect(fn({} as any, {})).rejects.toThrow("boom");
 
     // Both middleware should have caught the error in reverse order
     expect(order).toEqual([
@@ -188,7 +188,7 @@ describe("middleware skipping next()", () => {
         return "handler result";
       });
 
-    await fn({} as any)({});
+    await fn({} as any, {});
 
     // Handler should NOT have executed
     expect(handlerRan.value).toBe(false);
@@ -204,7 +204,7 @@ describe("handler called with correct context and args", () => {
         return { name: args.name, count: args.count };
       });
 
-    const result = await fn({} as any)({ name: "test", count: 42 });
+    const result = await fn({} as any, { name: "test", count: 42 });
     expect(result).toEqual({ name: "test", count: 42 });
   });
 
@@ -224,7 +224,7 @@ describe("handler called with correct context and args", () => {
         return { a: ctx.a, b: ctx.b };
       });
 
-    const result = await fn({} as any)({});
+    const result = await fn({} as any, {});
     expect(result).toEqual({ a: 1, b: 2 });
   });
 });
@@ -235,7 +235,7 @@ describe("empty middleware chain", () => {
       .query()
       .handler(async () => "no middleware");
 
-    const result = await fn({} as any)({});
+    const result = await fn({} as any, {});
     expect(result).toBe("no middleware");
   });
 });

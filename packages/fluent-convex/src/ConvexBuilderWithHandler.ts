@@ -65,8 +65,11 @@ export class ConvexBuilderWithHandler<
     this.def = def;
 
     // Create a callable function that delegates to _call
-    const callable = ((context: TCurrentContext) => {
-      return this._call(context);
+    const callable = ((
+      context: TCurrentContext,
+      args: InferredArgs<TArgsValidator>
+    ) => {
+      return this._call(context, args);
     }) as any;
 
     // Copy properties from prototype to the callable function
@@ -98,23 +101,22 @@ export class ConvexBuilderWithHandler<
   }
 
   // Internal method to handle the call
-  private _call(
-    context: TCurrentContext
-  ): (args: InferredArgs<TArgsValidator>) => Promise<THandlerReturn> {
+  private async _call(
+    context: TCurrentContext,
+    args: InferredArgs<TArgsValidator>
+  ): Promise<THandlerReturn> {
     const { handler, middlewares } = this.def;
 
     if (!handler) {
       throw new Error("Handler not set.");
     }
 
-    return async (args: InferredArgs<TArgsValidator>) => {
-      return this._executeWithMiddleware(
-        middlewares,
-        context as Context,
-        handler,
-        args
-      );
-    };
+    return this._executeWithMiddleware(
+      middlewares,
+      context as Context,
+      handler,
+      args
+    );
   }
 
   /**

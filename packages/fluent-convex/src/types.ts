@@ -70,8 +70,9 @@ export type CallableBuilder<
   THandlerReturn,
 > = {
   (
-    context: TCurrentContext
-  ): (args: InferredArgs<TArgsValidator>) => Promise<THandlerReturn>;
+    context: TCurrentContext,
+    args: InferredArgs<TArgsValidator>
+  ): Promise<THandlerReturn>;
 };
 export interface ConvexBuilderDef<
   TFunctionType extends FunctionType | undefined = undefined,

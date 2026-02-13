@@ -130,7 +130,7 @@ export const getNumbersWithTimestamp = convex
   .query()
   .input({ count: v.number() })
   .handler(async (ctx, args) => {
-    const numbers = await getNumbers(ctx)(args); // <-- direct call
+    const numbers = await getNumbers(ctx, args); // <-- direct call
     return { numbers, fetchedAt: Date.now() };
   })
   .public();
@@ -140,7 +140,7 @@ export const listNumbersProtected = getNumbers.use(authMiddleware).public();
 export const listNumbersLogged = getNumbers.use(withLogging("logged")).public();
 ```
 
-The callable syntax is `callable(ctx)(args)` -- the first call passes the context (so the middleware chain runs with the right ctx), the second passes the validated arguments.
+The callable syntax is `callable(ctx, args)` -- the first argument passes the context (so the middleware chain runs with the right ctx), the second passes the validated arguments.
 
 ## Plugins
 
@@ -310,14 +310,14 @@ export const tripled = convex
   .query()
   .input({ count: v.number() })
   .handler(async (ctx, input) => {
-    const { doubled } = await getDouble(ctx)(input);
+    const { doubled } = await getDouble(ctx, input);
     return { tripled: doubled + input.count };
   })
   .public();
 
 // Or call it directly in tests
 const mockContext = {} as any;
-const result = await getDouble(mockContext)({ count: 5 });
+const result = await getDouble(mockContext, { count: 5 });
 console.log(result); // { doubled: 10 }
 
 // Register it when you also need it as a standalone endpoint

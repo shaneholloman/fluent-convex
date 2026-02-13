@@ -48,7 +48,7 @@ export const getNumbersWithTimestamp = convex
   .input({ count: v.number() })
   .handler(async (ctx, args) => {
     // Call the unregistered callable directly - reuses the same logic
-    const numbers = await getNumbers(ctx)(args);
+    const numbers = await getNumbers(ctx, args);
 
     return {
       numbers,

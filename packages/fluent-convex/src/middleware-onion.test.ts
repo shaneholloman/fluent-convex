@@ -40,7 +40,7 @@ describe("Onion middleware composition", () => {
         return { done: true };
       });
 
-    await fn({} as any)({});
+    await fn({} as any, {});
 
     // Onion order: outer wraps inner wraps handler
     expect(order).toEqual([
@@ -71,7 +71,7 @@ describe("Onion middleware composition", () => {
         throw new Error("handler exploded");
       });
 
-    await expect(fn({} as any)({})).rejects.toThrow("handler exploded");
+    await expect(fn({} as any, {})).rejects.toThrow("handler exploded");
 
     // The middleware should have intercepted the error
     expect(caughtError).toBe("handler exploded");
@@ -95,7 +95,7 @@ describe("Onion middleware composition", () => {
         return { done: true };
       });
 
-    await fn({} as any)({});
+    await fn({} as any, {});
 
     // next() should block until the handler completes,
     // so measured duration should include the 50ms sleep
@@ -122,7 +122,7 @@ describe("Onion middleware composition", () => {
         };
       });
 
-    const result = await fn({} as any)({});
+    const result = await fn({} as any, {});
     expect(result).toEqual({ user: "alice", timestamp: 12345 });
   });
 });

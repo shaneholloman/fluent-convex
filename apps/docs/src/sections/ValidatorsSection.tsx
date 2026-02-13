@@ -1,7 +1,8 @@
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { CodeBlock } from "../components/CodeBlock";
-import { Prose, DemoCard, Badge } from "../components/ui";
+import { AnchorHeading, Prose, DemoCard, Badge } from "../components/ui";
+import { routes } from "../router";
 import { validatorsSource } from "../sources";
 
 export function ValidatorsSection() {
@@ -26,7 +27,7 @@ export function ValidatorsSection() {
       </Prose>
       <div className="flex flex-col gap-4">
         <div>
-          <h3 className="text-lg font-semibold mb-2">1. Property validators</h3>
+          <AnchorHeading id="property-validators" className="text-lg font-semibold mb-2">1. Property validators</AnchorHeading>
           <Prose>
             <p>
               The simplest form. Pass a plain object where each key is a Convex validator. This
@@ -38,7 +39,7 @@ export function ValidatorsSection() {
         <CodeBlock source={validatorsSource} region="propertyValidators" title="Property validators" file="convex/validators.ts" />
 
         <div>
-          <h3 className="text-lg font-semibold mb-2">2. Object validators with .returns()</h3>
+          <AnchorHeading id="object-validators" className="text-lg font-semibold mb-2">2. Object validators with .returns()</AnchorHeading>
           <Prose>
             <p>
               You can also pass a{" "}
@@ -53,7 +54,7 @@ export function ValidatorsSection() {
         <CodeBlock source={validatorsSource} region="objectValidators" title="Object validators + .returns()" file="convex/validators.ts" />
 
         <div>
-          <h3 className="text-lg font-semibold mb-2">3. Zod schemas via .extend(WithZod)</h3>
+          <AnchorHeading id="zod-schemas" className="text-lg font-semibold mb-2">3. Zod schemas via .extend(WithZod)</AnchorHeading>
           <Prose>
             <p>
               With the{" "}
@@ -63,7 +64,7 @@ export function ValidatorsSection() {
               <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">.returns()</code>.
               Zod schemas are automatically converted to Convex validators for structural
               validation, and Zod&apos;s own runtime validation (including refinements) runs on top.
-              More on this in the <a href="#zod-plugin" className="underline">Zod Plugin</a> section.
+              More on this in the <a {...routes.zodPlugin().link} className="underline">Zod Plugin</a> section.
             </p>
           </Prose>
         </div>

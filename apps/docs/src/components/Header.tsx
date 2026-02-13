@@ -1,12 +1,18 @@
 import { useConvexAuth } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
+import { routes } from "../router";
 
 export function Header() {
   return (
     <header className="sticky top-0 z-20 bg-light dark:bg-dark border-b border-slate-200 dark:border-slate-800">
       <div className="px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="font-bold text-lg tracking-tight">fluent-convex</span>
+          <a
+            {...routes.gettingStarted().link}
+            className="font-bold text-lg tracking-tight hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+          >
+            fluent-convex
+          </a>
           <span className="text-xs text-slate-400 dark:text-slate-500 hidden sm:inline">
             showcase &amp; docs
           </span>

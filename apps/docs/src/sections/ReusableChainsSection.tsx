@@ -1,7 +1,7 @@
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { CodeBlock } from "../components/CodeBlock";
-import { Prose, DemoCard, Badge } from "../components/ui";
+import { AnchorHeading, Prose, DemoCard, Badge } from "../components/ui";
 import { chainsSource } from "../sources";
 
 export function ReusableChainsSection() {
@@ -25,7 +25,7 @@ export function ReusableChainsSection() {
         </p>
       </Prose>
 
-      <h3 className="text-xl font-semibold">Define once, register multiple ways</h3>
+      <AnchorHeading id="define-once-register-multiple-ways" className="text-xl font-semibold">Define once, register multiple ways</AnchorHeading>
       <Prose>
         <p>
           In the example below, <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">listNumbersBase</code> is
@@ -36,7 +36,7 @@ export function ReusableChainsSection() {
       </Prose>
       <CodeBlock source={chainsSource} region="reusableBase" title="convex/chains.ts — define once, register multiple ways" file="convex/chains.ts" />
 
-      <h3 className="text-xl font-semibold">Stacking middleware on a callable</h3>
+      <AnchorHeading id="stacking-middleware" className="text-xl font-semibold">Stacking middleware on a callable</AnchorHeading>
       <Prose>
         <p>
           You can keep adding middleware to a callable before registering it. Each{" "}
@@ -46,7 +46,7 @@ export function ReusableChainsSection() {
       </Prose>
       <CodeBlock source={chainsSource} region="stackedMiddleware" title="Stacking middleware on a callable" file="convex/chains.ts" />
 
-      <h3 className="text-xl font-semibold">Middleware after handler</h3>
+      <AnchorHeading id="middleware-after-handler" className="text-xl font-semibold">Middleware after handler</AnchorHeading>
       <Prose>
         <p>
           A surprising but useful feature:{" "}

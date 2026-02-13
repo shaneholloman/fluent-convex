@@ -1,3 +1,26 @@
+export function AnchorHeading({
+  id,
+  children,
+  className = "",
+}: {
+  id: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <h3 id={id} className={`group relative ${className}`.trim()}>
+      {children}
+      <a
+        href={`#${id}`}
+        className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 no-underline"
+        aria-label={`Link to ${id}`}
+      >
+        #
+      </a>
+    </h3>
+  );
+}
+
 export function Prose({ children }: { children: React.ReactNode }) {
   return (
     <div className="text-slate-600 dark:text-slate-400 leading-relaxed text-[15px] flex flex-col gap-3">

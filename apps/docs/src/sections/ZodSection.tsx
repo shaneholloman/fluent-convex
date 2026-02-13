@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { CodeBlock } from "../components/CodeBlock";
-import { Prose, DemoCard, Btn } from "../components/ui";
+import { AnchorHeading, Prose, DemoCard, Btn } from "../components/ui";
 import { validatorsSource } from "../sources";
 
 export function ZodSection() {
@@ -59,7 +59,7 @@ export function ZodSection() {
         </p>
       </Prose>
 
-      <h3 className="text-xl font-semibold">Refinements</h3>
+      <AnchorHeading id="refinements" className="text-xl font-semibold">Refinements</AnchorHeading>
       <Prose>
         <p>
           The example below requires the value to be a positive number. Try submitting a negative
@@ -102,7 +102,7 @@ export function ZodSection() {
         )}
       </DemoCard>
 
-      <h3 className="text-xl font-semibold">Complex return types</h3>
+      <AnchorHeading id="complex-return-types" className="text-xl font-semibold">Complex return types</AnchorHeading>
       <Prose>
         <p>
           Zod is also useful for complex return types. The{" "}

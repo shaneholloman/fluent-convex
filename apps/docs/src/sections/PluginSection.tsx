@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { CodeBlock } from "../components/CodeBlock";
-import { Prose, DemoCard } from "../components/ui";
+import { AnchorHeading, Prose, DemoCard } from "../components/ui";
 import { pluginSource } from "../sources";
 
 export function PluginSection() {
@@ -36,7 +36,7 @@ export function PluginSection() {
       </Prose>
       <CodeBlock source={pluginSource} region="TimedBuilder" title="convex/plugin.ts — defining a plugin" file="convex/plugin.ts" />
 
-      <h3 className="text-xl font-semibold">Using the plugin</h3>
+      <AnchorHeading id="using-the-plugin" className="text-xl font-semibold">Using the plugin</AnchorHeading>
       <Prose>
         <p>
           Once defined, you use it with{" "}

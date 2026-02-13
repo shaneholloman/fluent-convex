@@ -1,5 +1,5 @@
 import { CodeBlock } from "../components/CodeBlock";
-import { Prose } from "../components/ui";
+import { AnchorHeading, Prose } from "../components/ui";
 import { middlewareSource, chainsSource } from "../sources";
 
 export function MiddlewareSection() {
@@ -28,7 +28,7 @@ export function MiddlewareSection() {
         </ul>
       </Prose>
 
-      <h3 className="text-xl font-semibold">Defining middleware</h3>
+      <AnchorHeading id="defining-middleware" className="text-xl font-semibold">Defining middleware</AnchorHeading>
       <Prose>
         <p>
           You create middleware with{" "}
@@ -55,7 +55,7 @@ export function MiddlewareSection() {
       </Prose>
       <CodeBlock source={middlewareSource} region="withLogging" title="Onion middleware: withLogging(name)" file="convex/middleware.ts" />
 
-      <h3 className="text-xl font-semibold mt-4">Applying middleware with .use()</h3>
+      <AnchorHeading id="applying-middleware" className="text-xl font-semibold mt-4">Applying middleware with .use()</AnchorHeading>
       <Prose>
         <p>
           Once defined, you apply middleware with{" "}

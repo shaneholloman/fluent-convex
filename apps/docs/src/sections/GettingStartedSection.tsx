@@ -1,5 +1,5 @@
 import { CodeBlock } from "../components/CodeBlock";
-import { InfoCallout, Prose } from "../components/ui";
+import { AnchorHeading, InfoCallout, Prose } from "../components/ui";
 import { libSource, authedSource } from "../sources";
 
 export function GettingStartedSection() {
@@ -29,7 +29,7 @@ export function GettingStartedSection() {
       </Prose>
 
       <div className="flex flex-col gap-3">
-        <h3 className="text-xl font-semibold">Installation</h3>
+        <AnchorHeading id="installation" className="text-xl font-semibold">Installation</AnchorHeading>
         <Prose>
           <p>
             Install via npm:

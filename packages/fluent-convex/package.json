@@ -1,6 +1,6 @@
 {
   "name": "fluent-convex",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "description": "A fluent API builder for Convex functions with middleware support, inspired by oRPC",
   "type": "module",
   "main": "./dist/index.js",
@@ -28,7 +28,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --typecheck",
     "dev:test": "vitest --typecheck",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "node -e \"require('fs').copyFileSync('../../README.md','README.md')\" && npm run build"
   },
   "keywords": [
     "convex",

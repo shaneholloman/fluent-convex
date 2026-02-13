@@ -70,20 +70,67 @@ export function MiddlewareSection() {
       </Prose>
       <CodeBlock source={chainsSource} region="usingMiddleware" title="convex/chains.ts - single and stacked .use() calls" file="convex/chains.ts" />
 
+      <AnchorHeading id="why-context" className="text-xl font-semibold mt-4">Why <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">$context</code>?</AnchorHeading>
+      <Prose>
+        <p>
+          If you create middleware with{" "}
+          <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">convex.query().createMiddleware(fn)</code>,
+          the input context is typed as{" "}
+          <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">QueryCtx</code> (which includes{" "}
+          <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">db</code>). That middleware <strong>can't</strong> be used on
+          a mutation or action &mdash;{" "}
+          <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">ActionCtx</code> is not assignable to{" "}
+          <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">QueryCtx</code>, so{" "}
+          <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">.use(authMiddleware)</code> will produce a type error.
+        </p>
+        <p>
+          The fix is{" "}
+          <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">.$context&lt;&#123; auth: Auth &#125;&gt;()</code>: it declares <em>exactly</em> what
+          your middleware needs from the context. Since{" "}
+          <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">auth</code> exists on all three function types
+          (queries, mutations, and actions), the middleware is compatible with all of them.
+        </p>
+        <p>
+          Three approaches, and when to use each:
+        </p>
+        <ul className="list-disc pl-6 flex flex-col gap-2">
+          <li>
+            <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">convex.query().createMiddleware(fn)</code> &mdash;
+            input context is <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">QueryCtx</code>. Use when middleware needs{" "}
+            <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">db</code>.
+          </li>
+          <li>
+            <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">convex.createMiddleware(fn)</code> &mdash;
+            input context is{" "}
+            <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">EmptyObject</code>. Use when middleware needs no context at all.
+          </li>
+          <li>
+            <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">convex.$context&lt;&#123; auth: Auth &#125;&gt;().createMiddleware(fn)</code> &mdash;
+            input context is exactly{" "}
+            <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">&#123; auth: Auth &#125;</code>. Use when middleware needs specific
+            properties shared across all function types.
+          </li>
+        </ul>
+      </Prose>
+
       <AnchorHeading id="auth-middleware" className="text-xl font-semibold mt-4">Auth middleware in practice</AnchorHeading>
       <Prose>
         <p>
           A common pattern is to bake auth middleware into reusable chains like{" "}
-          <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">authedQuery</code> and{" "}
-          <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">authedMutation</code>.
+          <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">authedQuery</code>,{" "}
+          <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">authedMutation</code>, and{" "}
+          <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">authedAction</code>.
           Every function built from them automatically requires a logged-in user and has{" "}
           <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">ctx.user</code>{" "}
-          available, fully typed, no casting needed.
+          available, fully typed, no casting needed. Because the middleware uses{" "}
+          <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">$context</code>, one
+          middleware definition works for all three function types.
         </p>
       </Prose>
       <CodeBlock source={authedSource} region="reusableAuthChains" title="convex/authed.ts - defining reusable auth chains" file="convex/authed.ts" />
       <CodeBlock source={authedSource} region="listTasks" title="convex/authed.ts - a query using authedQuery" file="convex/authed.ts" />
       <CodeBlock source={authedSource} region="addTask" title="convex/authed.ts - a mutation using authedMutation" file="convex/authed.ts" />
+      <CodeBlock source={authedSource} region="authedActionExample" title="convex/authed.ts - an action using authedAction" file="convex/authed.ts" />
       <DemoCard title="Live demo - sign in to manage tasks">
         <Authenticated>
           <TaskManager />

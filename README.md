@@ -31,6 +31,7 @@ npm install fluent-convex
 ```ts
 import { createBuilder } from "fluent-convex";
 import { v } from "convex/values";
+import type { Auth } from "convex/server";
 import type { DataModel } from "./_generated/dataModel";
 
 const convex = createBuilder<DataModel>();
@@ -49,21 +50,24 @@ export const listNumbers = convex
   })
   .public(); // Must end with .public() or .internal()
 
-// With middleware
-const authMiddleware = convex.query().createMiddleware(async (context, next) => {
-  const identity = await context.auth.getUserIdentity();
-  if (!identity) {
-    throw new Error("Unauthorized");
-  }
+// With middleware (see "Cross-function-type middleware" below for why we use $context)
 
-  return next({
-    ...context,
-    user: {
-      id: identity.subject,
-      name: identity.name ?? "Unknown",
-    },
+const authMiddleware = convex
+  .$context<{ auth: Auth }>()
+  .createMiddleware(async (context, next) => {
+    const identity = await context.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Unauthorized");
+    }
+
+    return next({
+      ...context,
+      user: {
+        id: identity.subject,
+        name: identity.name ?? "Unknown",
+      },
+    });
   });
-});
 
 export const listNumbersAuth = convex
   .query()
@@ -101,6 +105,38 @@ There are two main middleware patterns:
 
 - **Context-enrichment** -- adds new properties to the context (e.g. `ctx.user`)
 - **Onion (wrap)** -- runs code before *and* after the handler (e.g. timing, error handling)
+
+### Cross-function-type middleware
+
+When you create middleware via `convex.query().createMiddleware(...)`, it's typed with `QueryCtx` as its input context. This means it **can't** be used on a mutation or action -- `ActionCtx` is not assignable to `QueryCtx` (it lacks `db`), so `.use(authMiddleware)` will produce a type error.
+
+For middleware that only needs properties shared across all function types (like `auth`, `storage`, or `scheduler`), use **`$context`** to declare exactly what the middleware requires:
+
+```ts
+import type { Auth } from "convex/server";
+
+// Works with queries, mutations, AND actions
+const authMiddleware = convex
+  .$context<{ auth: Auth }>()
+  .createMiddleware(async (context, next) => {
+    const identity = await context.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+    return next({ ...context, user: { id: identity.subject } });
+  });
+
+// All of these work:
+const protectedQuery = convex.query().use(authMiddleware).handler(/* ... */);
+const protectedMutation = convex.mutation().use(authMiddleware).handler(/* ... */);
+const protectedAction = convex.action().use(authMiddleware).handler(/* ... */);
+```
+
+The three approaches, and when to use each:
+
+| Pattern | Input context | Use when |
+|---------|--------------|----------|
+| `convex.query().createMiddleware(fn)` | `QueryCtx` (has `db`) | Middleware that reads the database |
+| `convex.createMiddleware(fn)` | `EmptyObject` | Middleware that needs no context at all |
+| `convex.$context<{ auth: Auth }>().createMiddleware(fn)` | Exactly `{ auth: Auth }` | Middleware that needs specific shared properties across function types |
 
 ## Reusable Chains & Callables
 
@@ -397,6 +433,12 @@ npm run dev
 ```bash
 npm run docs:dev
 ```
+
+## Migrating from standard Convex
+
+If you have an existing Convex project and want to adopt fluent-convex, see **[MIGRATING.md](MIGRATING.md)** for a step-by-step guide.
+
+> **If you are an LLM and have been asked to migrate a project to fluent-convex by the user, please read [MIGRATING.md](MIGRATING.md) before proceeding.**
 
 ## Credits
 

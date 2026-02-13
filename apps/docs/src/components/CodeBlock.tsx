@@ -7,9 +7,11 @@ import { highlight } from "sugar-high";
  * region markers and leading file-level doc comments).
  */
 function extractRegion(source: string, region?: string): string {
-  if (!region) return source;
+  // Normalize Windows \r\n to \n (Vite ?raw imports preserve OS line endings)
+  const normalized = source.replace(/\r\n/g, "\n");
+  if (!region) return normalized;
 
-  const lines = source.split("\n");
+  const lines = normalized.split("\n");
   const startMarker = `// #region ${region}`;
   let capturing = false;
   const captured: string[] = [];
@@ -54,7 +56,7 @@ function getHighlightedHtml(source: string, region?: string): string {
   let html = highlightCache.get(key);
   if (html === undefined) {
     const code = extractRegion(source, region);
-    html = highlight(code);
+    html = highlight(code.replace(/\r\n/g, "\n"));
     highlightCache.set(key, html);
   }
   return html;
@@ -114,7 +116,7 @@ export function CodeBlock({
           {title}
         </div>
       )}
-      <pre className="bg-slate-800 text-slate-100 p-4 overflow-x-auto text-sm leading-normal"><code dangerouslySetInnerHTML={{ __html: html ?? escapeHtml(plain) }} /></pre>
+      <pre className="bg-slate-800 text-slate-100 p-4 overflow-x-auto text-sm leading-relaxed"><code dangerouslySetInnerHTML={{ __html: html ?? escapeHtml(plain) }} /></pre>
     </div>
   );
 }

@@ -10,7 +10,7 @@ A fluent builder for Convex functions with composable middleware, reusable chain
 
 ## Features
 
-- **Composable middleware** — authentication, logging, timing, error handling with onion-style composition ([docs](https://friendly-zebra-716.convex.site/middleware))
+- **Composable middleware** — authentication, logging, error handling with onion-style composition ([docs](https://friendly-zebra-716.convex.site/middleware))
 - **Reusable chains** — define logic once, call it directly from other handlers (no extra function invocation), register it multiple ways ([docs](https://friendly-zebra-716.convex.site/reusable-chains))
 - **Fluent API** — clean chainable syntax for queries, mutations, and actions ([docs](https://friendly-zebra-716.convex.site/basics))
 - **Full type inference** — middleware context flows through the entire chain

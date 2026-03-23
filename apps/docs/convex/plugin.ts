@@ -2,9 +2,9 @@
  * plugin.ts - Custom plugin demo using the .extend() system.
  *
  * Plugins let you add custom methods to the builder chain. This
- * example creates a TimedBuilder that adds a `.withTiming(name)`
- * method - it automatically wraps any function with execution
- * timing via onion middleware.
+ * example creates a TaggedBuilder that adds a `.withTag(name)`
+ * method, automatically wrapping any function with structured
+ * logging via onion middleware.
  *
  * The key is overriding `_clone()` so the plugin type survives
  * through .use(), .input(), .returns(), etc.
@@ -23,8 +23,8 @@ import {
 } from "fluent-convex";
 import { convex } from "./fluent";
 
-// #region TimedBuilder
-export class TimedBuilder<
+// #region TaggedBuilder
+export class TaggedBuilder<
   TDataModel extends GenericDataModel = GenericDataModel,
   TFunctionType extends FunctionType = FunctionType,
   TCurrentContext extends Context = EmptyObject,
@@ -45,26 +45,21 @@ export class TimedBuilder<
     super(def);
   }
 
-  // Override _clone so TimedBuilder survives through .use(), .input(), etc.
+  // Override _clone so TaggedBuilder survives through .use(), .input(), etc.
   protected _clone(def: ConvexBuilderDef<any, any, any>): any {
-    return new TimedBuilder(def);
+    return new TaggedBuilder(def);
   }
 
-  /** Add automatic execution timing via onion middleware. */
-  withTiming(operationName: string) {
+  /** Add structured logging via onion middleware. */
+  withTag(operationName: string) {
     return this.use(async (ctx, next) => {
-      const start = Date.now();
-      console.log(`[TIMER:${operationName}] Start`);
+      console.log(`[${operationName}] Start`);
       try {
         const result = await next(ctx);
-        console.log(
-          `[TIMER:${operationName}] Done in ${Date.now() - start}ms`
-        );
+        console.log(`[${operationName}] Done`);
         return result;
       } catch (error) {
-        console.error(
-          `[TIMER:${operationName}] Error after ${Date.now() - start}ms`
-        );
+        console.error(`[${operationName}] Error`);
         throw error;
       }
     });
@@ -72,11 +67,11 @@ export class TimedBuilder<
 }
 // #endregion
 
-// #region timedQuery
-export const timedQuery = convex
+// #region taggedQuery
+export const taggedQuery = convex
   .query()
-  .extend(TimedBuilder)
-  .withTiming("timedQuery")
+  .extend(TaggedBuilder)
+  .withTag("taggedQuery")
   .input({ echo: v.string() })
   .handler(async (_ctx, input) => {
     return { message: `Echo: ${input.echo}`, timestamp: Date.now() };

@@ -38,24 +38,19 @@ export const addValueMiddleware = <TValue>(value: TValue) =>
     });
   });
 
-// Onion middleware: logs execution time and catches errors.
+// Onion middleware: logs execution and catches errors.
 // Because middleware uses true onion composition, `next()` executes
 // the rest of the chain (subsequent middleware + handler), so we can
-// measure timing and catch errors from downstream.
+// log lifecycle events and catch errors from downstream.
 export const withLogging = (operationName: string) =>
   convex.createMiddleware(async (context, next) => {
-    const start = Date.now();
     console.log(`[${operationName}] Starting...`);
     try {
       const result = await next(context);
-      const duration = Date.now() - start;
-      console.log(`[${operationName}] Completed in ${duration}ms`);
+      console.log(`[${operationName}] Completed`);
       return result;
     } catch (error: any) {
-      const duration = Date.now() - start;
-      console.error(
-        `[${operationName}] Failed after ${duration}ms: ${error.message}`,
-      );
+      console.error(`[${operationName}] Failed: ${error.message}`);
       throw error;
     }
   });

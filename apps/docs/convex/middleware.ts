@@ -29,23 +29,18 @@ export const addTimestamp = convex.createMiddleware(async (context, next) => {
 // ---------------------------------------------------------------------------
 // #region withLogging
 // Onion middleware (parameterized): wraps the entire downstream chain
-// so it can measure execution time and catch errors. Because `next()`
+// so it can log lifecycle events and catch errors. Because `next()`
 // executes all subsequent middleware + the handler, this middleware
 // "surrounds" them like layers of an onion.
 export const withLogging = (operationName: string) =>
   convex.createMiddleware(async (context, next) => {
-    const start = Date.now();
     console.log(`[${operationName}] Starting...`);
     try {
       const result = await next(context);
-      const duration = Date.now() - start;
-      console.log(`[${operationName}] Completed in ${duration}ms`);
+      console.log(`[${operationName}] Completed`);
       return result;
     } catch (error: any) {
-      const duration = Date.now() - start;
-      console.error(
-        `[${operationName}] Failed after ${duration}ms: ${error.message}`
-      );
+      console.error(`[${operationName}] Failed: ${error.message}`);
       throw error;
     }
   });

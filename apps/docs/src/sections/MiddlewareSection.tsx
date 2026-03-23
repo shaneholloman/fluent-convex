@@ -24,7 +24,7 @@ export function MiddlewareSection() {
             <strong>Onion (wrap)</strong> - runs code both <em>before</em> and <em>after</em> the
             rest of the chain. Because{" "}
             <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">next()</code> awaits
-            the downstream middleware + handler, you can measure timing, catch errors, or
+            the downstream middleware + handler, you can log lifecycle events, catch errors, or
             post-process results.
           </li>
         </ul>
@@ -48,8 +48,8 @@ export function MiddlewareSection() {
       <CodeBlock source={middlewareSource} region="addTimestamp" title="Simple enrichment: addTimestamp" file="convex/middleware.ts" />
       <Prose>
         <p>
-          Because onion middleware wraps the handler, it can measure
-          timing, catch errors, log results, or retry. The{" "}
+          Because onion middleware wraps the handler, it can catch errors,
+          log results, or retry. The{" "}
           <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded text-sm">withLogging</code>{" "}
           example below is parameterized - you pass an operation name and get back a middleware
           instance:

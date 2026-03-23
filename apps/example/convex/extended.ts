@@ -42,18 +42,14 @@ export class LoggedBuilder<
   withStandardLogging(operationName: string) {
     console.log(`Building operation: ${operationName}`);
 
-    // Add logging middleware
     const withMiddleware = this.use(async (ctx, next) => {
       console.log(`[${operationName}] Starting execution...`);
-      const start = Date.now();
       try {
         const result = await next(ctx);
-        const duration = Date.now() - start;
-        console.log(`[${operationName}] Completed in ${duration}ms`);
+        console.log(`[${operationName}] Completed`);
         return result;
       } catch (error) {
-        const duration = Date.now() - start;
-        console.error(`[${operationName}] Failed after ${duration}ms`, error);
+        console.error(`[${operationName}] Failed`, error);
         throw error;
       }
     });

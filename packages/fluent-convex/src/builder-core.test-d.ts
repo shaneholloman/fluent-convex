@@ -443,6 +443,23 @@ describe("Builder Core", () => {
       >(callableQuery);
     });
 
+    it("should infer one-arg handlers with empty input objects", () => {
+      const callableQuery = convex
+        .query()
+        .input({})
+        .handler(async (context) => {
+          assertType(context.db);
+          return { success: Boolean(context.db) };
+        });
+
+      assertType<
+        (
+          context: any,
+          args: Record<never, never>
+        ) => Promise<{ success: boolean }>
+      >(callableQuery);
+    });
+
     it("should lose callability after .public()", () => {
       const callableQuery = convex
         .query()

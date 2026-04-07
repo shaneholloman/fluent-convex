@@ -130,11 +130,19 @@ export class ConvexBuilderWithFunctionKind<
       TReturnsValidator,
       any
     > = InferredHandlerReturn<TReturnsValidator, any>,
-  >(
-    handlerFn: (
+    THandlerFn extends (
       context: TCurrentContext,
       input: InferredArgs<TArgsValidator>
-    ) => Promise<TReturn>
+    ) => Promise<TReturn> = (
+      context: TCurrentContext,
+      input: InferredArgs<TArgsValidator>
+    ) => Promise<TReturn>,
+  >(
+    handlerFn: THandlerFn &
+      ((
+        context: TCurrentContext,
+        input: InferredArgs<TArgsValidator>
+      ) => Promise<TReturn>)
   ): ConvexBuilderWithHandler<
     TDataModel,
     TFunctionType,
@@ -143,6 +151,7 @@ export class ConvexBuilderWithFunctionKind<
     TReturnsValidator,
     InferredHandlerReturn<TReturnsValidator, TReturn>
   > &
+    THandlerFn &
     CallableBuilder<
       TCurrentContext,
       TArgsValidator,
@@ -184,6 +193,7 @@ export class ConvexBuilderWithFunctionKind<
       TReturnsValidator,
       InferredReturn
     > &
+      THandlerFn &
       CallableBuilder<TCurrentContext, TArgsValidator, InferredReturn>;
   }
 }
